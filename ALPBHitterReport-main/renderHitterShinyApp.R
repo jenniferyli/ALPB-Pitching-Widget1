@@ -96,7 +96,7 @@ server <- function(input, output, session) {
   
   # Grab Trackman Data to Start Building Visuals
   
-  source('getTrackmanData.R')
+  source('~/ALPB-Pitching-Widget1/getTrackmanData.R')
   
   trackman_data <- get_trackman_data()
   trackman_data$Date <- as.Date(trackman_data$Date)
