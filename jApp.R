@@ -1,4 +1,5 @@
 library(shiny)
+library(shinythemes)
 library(dplyr)
 
 # get trackman data
@@ -23,8 +24,13 @@ get_data <- function() {
 
 # ui
 ui <- fluidPage(
+  theme = shinytheme("flatly"),
+  
   selectInput("selected_pitcher", "Choose a Pitcher:", choices = NULL),  
+  textOutput("pitcher_hand"),
+  tableOutput("pitcher_id"),
   tableOutput("pitcher_data")
+  
 )
 
 # server
@@ -40,9 +46,28 @@ server <- function(input, output, session) {
     get_data() %>% filter(Pitcher == input$selected_pitcher)
   })
   
+  output$pitcher_hand <- renderText({
+    data <- filtered_data()
+    if (nrow(data) > 0) {
+      paste("Pitcher Hand:", data$PitcherThrows[1])
+    } else {
+      "No data available for this pitcher."
+    }
+  })
+  
+  output$pitcher_id <- renderText({
+    data <- filtered_data()
+    if (nrow(data) > 0) {
+      paste("Pitcher ID:", data$PitcherId[1])
+    } else {
+      "No data available for this pitcher."
+    }
+  })
+  
   output$pitcher_data <- renderTable({
     filtered_data()
   })
+  
 }
 
 shinyApp(ui, server)
