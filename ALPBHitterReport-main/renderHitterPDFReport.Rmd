@@ -1,0 +1,117 @@
+---
+output: pdf_document
+header-includes:
+  - \pagenumbering{gobble}
+  - \usepackage{multicol}
+  - \usepackage{graphicx}
+  - \graphicspath{ {.} }
+geometry: margin = 0.25in
+date: "`r Sys.Date()`"
+params:
+    report_header: page_header_list
+    info_and_stats_viz: info_and_stats_list
+    spray_and_advanced_viz: spray_and_advanced_list
+    batter_heatmaps_viz: batter_heatmaps_list
+---
+
+```{r setup, fig.width=8.5, fig.height=11, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+\begin{multicols}{3} % Create a 3 column layout to hold the header logo, player name, and date range
+
+\includegraphics[width=0.4\columnwidth]{ALPB_Logo} % include the ALPB logo
+
+\hspace{0pt}
+\vfill
+\hspace{-0.5in}\large\textbf{`r paste0(params$report_header[[1]], " vs. RHP")`} % include the player name
+\vfill
+\hspace{0pt}
+
+\hspace{0pt}
+\vfill
+\large\textbf{`r paste0(params$report_header[[2]], " to ", params$report_header[[3]])`} % include the date range
+\vfill
+\hspace{0pt}
+
+\end{multicols}
+\vspace{-0.35in}
+\noindent\rule{\textwidth}{0.75pt} 
+
+```{r fig.width=8.5, fig.height=1}
+# chunk for the basic info and basic stats
+params$info_and_stats_viz[[1]]
+```
+
+```{r fig.width=8.5, fig.height=3}
+# chunk for the spray chart and advanced stats
+params$spray_and_advanced_viz[[1]]
+```
+
+\begin{multicols}{3} % 3 column headers for the heatmaps
+
+
+
+\hspace{0.2in}\centerline{\LARGE\textbf{EV > 95}}
+
+
+
+\hspace{-0.05in}\centerline{\LARGE\textbf{Whiff}}
+
+
+
+\hspace{-0.05in}\centerline{\LARGE\textbf{Chase}}
+\end{multicols}
+
+```{r fig.width=8.5, fig.height=5}
+# chunk for the batter heatmap visual
+params$batter_heatmaps_viz[[1]]
+```
+
+\newpage
+\begin{multicols}{3}
+
+\includegraphics[width=0.4\columnwidth]{ALPB_Logo}
+
+\hspace{0pt}
+\vfill
+\hspace{-0.5in}\large\textbf{`r paste0(params$report_header[[1]], " vs. LHP")`}
+\vfill
+\hspace{0pt}
+
+\hspace{0pt}
+\vfill
+\large\textbf{`r paste0(params$report_header[[2]], " to ", params$report_header[[3]])`}
+\vfill
+\hspace{0pt}
+
+\end{multicols}
+\vspace{-0.35in}
+\noindent\rule{\textwidth}{0.75pt}
+
+```{r fig.width=8.5, fig.height=1}
+params$info_and_stats_viz[[2]]
+```
+
+```{r fig.width=8.5, fig.height=3}
+params$spray_and_advanced_viz[[2]]
+```
+
+\begin{multicols}{3}
+
+
+
+\hspace{0.2in}\centerline{\LARGE\textbf{EV > 95}}
+
+
+
+\hspace{-0.05in}\centerline{\LARGE\textbf{Whiff}}
+
+
+
+\hspace{-0.05in}\centerline{\LARGE\textbf{Chase}}
+\end{multicols}
+
+```{r fig.width=8.5, fig.height=5}
+params$batter_heatmaps_viz[[2]]
+```
