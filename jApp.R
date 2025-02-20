@@ -4,14 +4,22 @@ library(dplyr)
 
 # get trackman data
 get_data <- function() {
-  folder_path <- "7.01"
-  csv_files <- list.files(path = folder_path, pattern = "*.csv", full.names = TRUE)
+  folder_path <- "ALPBHitterReport-main/07data"
   
-  combined_df <- csv_files %>%
+  # Get a list of all CSV files in the data folder
+  
+  combined_df<- list()
+  for(i in 1:23){
+    file_number <- sprintf("%02d", i)
+    file_path_1 <- file.path(folder_path, file_number, "CSV")
+    csv_files <- list.files(path = file_path_1, pattern = "*.csv", full.names = TRUE)
+    combined_df <- append(combined_df, csv_files)
+  }
+  df <- combined_df %>%
     lapply(read.csv) %>%
     bind_rows()
   
-  return(combined_df)
+  return(df)
 }
 
 # ui
@@ -63,3 +71,4 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
+
