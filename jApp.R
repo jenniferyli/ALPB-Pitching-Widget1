@@ -44,7 +44,11 @@ ui <- fluidPage(
     column(4,  # Sidebar takes up 1/3 of the screen
            selectInput("selected_pitcher", "Choose a Pitcher:", choices = NULL),
            textOutput("pitcher_hand"),
-           textOutput("pitcher_id")
+           textOutput("pitcher_id"),
+           radioButtons("break_type", "Choose Break Type:",
+                        choices = c("Vertical Break" = "VertBreak", 
+                                    "Horizontal Break" = "HorzBreak"),
+                        selected = "VertBreak")
     ),
     
     column(8,  # Main content takes up 2/3 of the screen
@@ -89,15 +93,15 @@ server <- function(input, output, session) {
     }
   })
   
-  # Scatter plot for RelSpeed vs. VertBreak
+  # Scatter plot for Break vs RelSpeed
   output$scatterPlot <- renderPlot({
     data <- filtered_data()
     if (nrow(data) > 0) {
-      ggplot(data, aes(x = RelSpeed, y = VertBreak)) +
+      ggplot(data, aes(x = RelSpeed, y = get(input$break_type))) +
         geom_point(color = "blue", alpha = 0.7, size = 2) +
-        labs(title = "Velocity vs. VertBreak",
+        labs(title = paste(input$break_type, "vs. Velocity" ),
              x = "Velocity",
-             y = "Vertical Break") +
+             y = input$break_type) +
         theme_minimal()
     }
   })
