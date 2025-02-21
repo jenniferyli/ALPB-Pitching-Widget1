@@ -38,7 +38,7 @@ get_data <- function() {
 ui <- fluidPage(
   theme = shinytheme("flatly"),
   
-  titlePanel("Pitcher Data Analysis"),
+  titlePanel("ALPB Pitcher Data"),
   
   fluidRow(
     column(4,  # Sidebar takes up 1/3 of the screen
