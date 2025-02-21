@@ -1,6 +1,7 @@
 library(shiny)
 library(shinythemes)
 library(dplyr)
+library(ggplot2)
 
 # get trackman data
 get_data <- function() {
@@ -37,16 +38,27 @@ get_data <- function() {
 ui <- fluidPage(
   theme = shinytheme("flatly"),
   
-  selectInput("selected_pitcher", "Choose a Pitcher:", choices = NULL),  
-  textOutput("pitcher_hand"),
-  tableOutput("pitcher_id"),
-  tableOutput("pitcher_data")
+  titlePanel("Pitcher Data Analysis"),
   
+  fluidRow(
+    column(4,  # Sidebar takes up 1/3 of the screen
+           selectInput("selected_pitcher", "Choose a Pitcher:", choices = NULL),
+           textOutput("pitcher_hand"),
+           textOutput("pitcher_id")
+    ),
+    
+    column(8,  # Main content takes up 2/3 of the screen
+           #tableOutput("pitcher_data"),
+           plotOutput("scatterPlot", height = "400px")  # Half-screen scatter plot
+    )
+  )
 )
+
 
 # server
 server <- function(input, output, session) {
   
+  #select pitcher
   observe({
     updateSelectInput(session, "selected_pitcher", 
                       choices = unique(get_data()$Pitcher)) 
@@ -57,6 +69,7 @@ server <- function(input, output, session) {
     get_data() %>% filter(Pitcher == input$selected_pitcher)
   })
   
+  #render text for pitcher hand
   output$pitcher_hand <- renderText({
     data <- filtered_data()
     if (nrow(data) > 0) {
@@ -66,6 +79,7 @@ server <- function(input, output, session) {
     }
   })
   
+  #render text for pitcher ID 
   output$pitcher_id <- renderText({
     data <- filtered_data()
     if (nrow(data) > 0) {
@@ -75,9 +89,19 @@ server <- function(input, output, session) {
     }
   })
   
-  output$pitcher_data <- renderTable({
-    filtered_data()
+  # Scatter plot for RelSpeed vs. VertBreak
+  output$scatterPlot <- renderPlot({
+    data <- filtered_data()
+    if (nrow(data) > 0) {
+      ggplot(data, aes(x = RelSpeed, y = VertBreak)) +
+        geom_point(color = "blue", alpha = 0.7, size = 2) +
+        labs(title = "Velocity vs. VertBreak",
+             x = "Velocity",
+             y = "Vertical Break") +
+        theme_minimal()
+    }
   })
+
   
 }
 
