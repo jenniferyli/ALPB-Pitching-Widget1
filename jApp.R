@@ -5,15 +5,9 @@ library(dplyr)
 # get trackman data
 get_data <- function() {
   folder_path <- "ALPBHitterReport-main/07data"
-<<<<<<< HEAD
-
-  # Get a list of all CSV files in the data folder
-  
-=======
   
   # Get a list of all CSV files in the data folder
   
->>>>>>> 73431f8ab9bf4486e7bc632115a95e1ce9e88991
   combined_df<- list()
   for(i in 1:23){
     file_number <- sprintf("%02d", i)
@@ -24,13 +18,20 @@ get_data <- function() {
   df <- combined_df %>%
     lapply(read.csv) %>%
     bind_rows()
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 73431f8ab9bf4486e7bc632115a95e1ce9e88991
   return(df)
 }
+
+# add_table <- function(){
+#   df <-get_data()
+#   df_selected <- df %>%
+#     select(column1, column2)
+#   ggplot(df_selected, aes(x = column1, y = column2)) +
+#     geom_point() +
+#     labs(title = "Scatter Plot of column1 vs column2", x = "Column 1", y = "Column 2") +
+#     theme_minimal()
+# }
+
 
 # ui
 ui <- fluidPage(
