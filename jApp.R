@@ -46,15 +46,21 @@ ui <- fluidPage(
            textOutput("pitcher_hand"),
            textOutput("pitcher_id"),
            radioButtons("break_type", "Choose Break Type:",
-                        choices = c("Vertical Break" = "VertBreak", 
+                        choices = c("Vertical Break" = "InducedVertBreak", 
                                     "Horizontal Break" = "HorzBreak"),
-                        selected = "VertBreak")
+                        selected = "InducedVertBreak"),
+           radioButtons("tag_choice", "Select Pitch Type Tagging:",
+                        choices = c("Human Tagged" = "TaggedPitchType", 
+                                    "Machine Tagged" = "AutoPitchType"),
+                        selected = "TaggedPitchType")
+    
     ),
     
     column(8,  # Main content takes up 2/3 of the screen
            #tableOutput("pitcher_data"),
-           plotOutput("scatterPlot", height = "400px")  # Half-screen scatter plot
-    )
+           plotOutput("scatterPlot", height = "400px")# Half-screen scatter plot
+           
+  )
   )
 )
 
@@ -97,12 +103,24 @@ server <- function(input, output, session) {
   output$scatterPlot <- renderPlot({
     data <- filtered_data()
     if (nrow(data) > 0) {
-      ggplot(data, aes(x = RelSpeed, y = get(input$break_type))) +
-        geom_point(color = "blue", alpha = 0.7, size = 2) +
+      #Tag_name =  get(input$tag_choice)
+      #data$TagStatus <- ifelse(is.na(data[[input$tag_choice]]), "Untagged", as.character(data[[input$tag_choice]]))
+      ggplot(data, aes(x = RelSpeed, y = get(input$break_type), color = get(input$tag_choice))) +
+        geom_point(alpha = 0.7, size = 2) +
         labs(title = paste(input$break_type, "vs. Velocity" ),
              x = "Velocity",
              y = input$break_type) +
-        theme_minimal()
+        theme_minimal() +
+        scale_color_manual("Pitch Tag", values = c("Fastball" = "red", 
+                                      "Four-Seam" = "red",
+                                      "Changeup" = "blue", 
+                                      "ChangeUp" = "blue", 
+                                      "Sinker" = "green", 
+                                      "Curveball" = "yellow", 
+                                      "Slider" = "purple", 
+                                      "Splitter" = "black", 
+                                      "Cutter" = "pink",
+                                      "Untagged" = "gray")) # Custom colors (optional)
     }
   })
 
