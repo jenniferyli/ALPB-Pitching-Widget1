@@ -76,11 +76,17 @@ ui <- fluidPage(
            card_w_header("Gamesplits:", tableOutput("game_log"))  # Placeholder table in full width
     )
   ),
+  
   fluidRow(
     column(6,  # Main content takes up 2/3 of the screen
-                  plotOutput("scatterPlot", height = "300px")# Half-screen scatter plot),
+           card_w_header("Beraks", plotOutput("scatterPlot", height = "300px")) # Correct way to set height for plotOutput
+    ),
+    column(6, 
+           card_w_header("Heat Maps", plotOutput("heatmaps", height = "300px")) # Correct way to set height for plotOutput
     )
   ),
+  
+
   fluidRow(
     column(3,  # Sidebar takes up 1/3 of the screen
            # textOutput("pitcher_hand"),
@@ -100,8 +106,10 @@ ui <- fluidPage(
                                     "Machine Tagged" = "AutoPitchType"),
                         selected = "TaggedPitchType")
            
+    ),
+    column(6, 
+           card_w_no_header(selectizeInput("pitch_type", "Choose a pitch type:", choices = NULL, options = list(placeholder = 'Type to search...', onInitialize = I('function() { this.setValue(""); }')))),
     )
-
   )
   
 )
@@ -114,6 +122,10 @@ server <- function(input, output, session) {
   observe({
     updateSelectInput(session, "selected_pitcher", 
                       choices = unique(get_data()$Pitcher)) 
+  })
+  observe({
+    updateSelectInput(session, "pitch_type", 
+                      choices = unique(get_data()$AutoPitchType)) 
   })
   
   filtered_data <- reactive({
@@ -211,6 +223,23 @@ server <- function(input, output, session) {
                                       "Cutter" = "pink",
                                       "Untagged" = "gray")) # Custom colors (optional)
     }
+  })
+  source('getHeatmap.R')
+  
+  # Create the heatmaps as a reactive expressions based on a dropdown
+  
+  # updateSelectizeInput(session, "heatPitchType", choices = c("FB", "SL", "CB", "CH"), server = TRUE)
+  
+  heatmap_plots <- reactive({
+    data <- filtered_data()
+    req(data)
+    build_heatmap(data)
+  })
+  
+  # Render the heatmaps in plot form (will be put in a card in the UI)
+  
+  output$heatmaps <- renderPlot({
+    heatmap_plots()
   })
 
   
