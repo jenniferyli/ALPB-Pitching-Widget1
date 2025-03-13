@@ -83,9 +83,11 @@ ui <- fluidPage(
     ),
 
     mainPanel(
-      textOutput("player_id"),
-      textOutput("team_name"),
-      textOutput("player_handedness")
+      uiOutput("player_id"),
+      uiOutput("team_name"),
+      
+      # textOutput("team_name"),
+      uiOutput("player_handedness")
     )
   )
 )
@@ -101,7 +103,7 @@ server <- function(input, output) {
     player_id <- selected_pitcher()$player_id
 
     if (!is.null(player_id) && length(player_id) > 0) {
-      paste("Player ID:", player_id)
+      HTML(paste("<b>Player ID:</b>", player_id)) 
     } else {
       "No data available"
     }
@@ -111,7 +113,8 @@ server <- function(input, output) {
     team_name <- selected_pitcher()$team_name
 
     if (!is.null(team_name) && length(team_name) > 0) {
-      paste("Team Name:", team_name)
+      HTML(paste("<b>Team Name:</b>", team_name))
+      # paste("Team Name:", team_name)
     } else {
       "No data available"
     }
@@ -121,7 +124,8 @@ server <- function(input, output) {
     handedness <- selected_pitcher()$player_pitching_handedness
 
     if (!is.null(handedness) && length(handedness) > 0) {
-      paste("Pitching Handedness:", handedness)
+      HTML(paste("<b>Pitching Handedness:</b>", handedness))
+      # paste("Pitching Handedness:", handedness)
     } else {
       "No data available"
     }
