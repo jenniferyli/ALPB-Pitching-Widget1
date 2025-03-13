@@ -39,7 +39,7 @@ get_pitcher_data <- function() {
 
 get_pitch_data <- function(player_id) {
   if (is.null(player_id) || length(player_id) == 0) {
-    print("⚠️ Error: Invalid player_id (NULL or empty)")
+    print("Error: Invalid player_id (NULL or empty)")
     return(NULL)
   }
   
@@ -83,7 +83,6 @@ ui <- fluidPage(
   
   fluidRow(
     column(12, 
-           h3("Pitcher Information"),  
            uiOutput("player_info")  
     )
   )
@@ -103,7 +102,7 @@ server <- function(input, output, session) {
     
     if (!is.null(player_id) && length(player_id) > 0) {
       tagList(
-        h4(HTML(paste("<b>Player Name:</b>", player_name))),
+        h4(HTML(paste(player_name))),
         div(HTML(paste("<b>Player ID:</b>", player_id))),
         div(HTML(paste("<b>Team Name:</b>", team_name))),
         div(HTML(paste("<b>Pitching Handedness:</b>", handedness))),
