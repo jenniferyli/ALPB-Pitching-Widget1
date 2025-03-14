@@ -6,6 +6,7 @@ api_key <- "IuHgm3smV65kbC6lMlMLz80DOeEkGSiV6USoQhvZ"
 players_url <- "https://1ywv9dczq5.execute-api.us-east-2.amazonaws.com/ALPBAPI/players"
 pitches_url <- "https://1ywv9dczq5.execute-api.us-east-2.amazonaws.com/ALPBAPI/pitches"
 
+# fetch pitcher data
 get_pitcher_data <- function() {
   headers <- add_headers(`x-api-key` = api_key)
   
@@ -69,25 +70,42 @@ get_pitch_data <- function(player_id) {
 
 pitcher_data <- get_pitcher_data()
 
+card_w_header <- function(title, body) {
+  div(class = "card",
+      div(class = "card-header bg-info text-white text-center font-weight-bold", title),  # ✅ Blue Header
+      div(class = "card-body d-flex justify-content-center align-items-center",  
+          div(style = "text-align: center; width: 100%;", body)  # ✅ Centers the table
+      )
+  )
+}
+
+
+
+
 ui <- fluidPage(
-  titlePanel("ALPB Pitchers"),
+    div(style = "text-align: center;", h1("ALPB Pitchers")),
   
-  fluidRow(
+    fluidRow(
     column(4,   
            wellPanel(
              selectInput("selected_player", "Select a Pitcher:", choices = pitcher_data$player_name)
            )
     ),
-    column(8)   
+    column(8,   
+           card_w_header("Season Stats", tableOutput("season_log"))  # ✅ Centered Table
+    )
+    
   ),
   
   fluidRow(
     column(12, 
+           h3("Pitcher Information"),  
            uiOutput("player_info")  
     )
   )
 )
 
+# Server
 server <- function(input, output, session) {
   
   selected_pitcher <- reactive({
@@ -115,7 +133,24 @@ server <- function(input, output, session) {
     }
   })
   
-
+  # Placeholder WHIP Table (Season Stats)
+  output$season_log <- renderTable({
+    data.frame(
+      W = sample(2:10, 1),
+      L = sample(2:10, 1),
+      ERA = round(runif(1, 3.00, 6.00), 2),
+      G = sample(20:25, 1),
+      IP = round(runif(1, 4.0, 9.0), 1),
+      H = sample(70:150, 1),
+      R = sample(45:55, 1),
+      ER = sample(35:45, 1),
+      HR = sample(15:30,1),
+      BB = sample(25:50,1),
+      WHIP = round(runif(1, 1.10, 1.50), 2)  # ✅ WHIP included
+    )
+  })
+  
+  # Fetch pitch data and print only in console when a player is selected
   observeEvent(input$selected_player, {
     player_id <- selected_pitcher()$player_id
     
@@ -126,3 +161,4 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
+
