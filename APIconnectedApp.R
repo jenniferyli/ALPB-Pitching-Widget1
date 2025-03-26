@@ -7,6 +7,19 @@ api_key <- "IuHgm3smV65kbC6lMlMLz80DOeEkGSiV6USoQhvZ"
 players_url <- "https://1ywv9dczq5.execute-api.us-east-2.amazonaws.com/ALPBAPI/players"
 pitches_url <- "https://1ywv9dczq5.execute-api.us-east-2.amazonaws.com/ALPBAPI/pitches"
 
+# Function to create a card without a header
+card_w_no_header <- function(body) {
+  div(class = "card-body d-flex justify-content-center", body)
+}
+
+# function to create a card container without a header but with a slight inset
+
+card_w_inset_and_no_header <- function(body) {
+  div(class = "card",
+      div(class = "card-body d-inline-flex justify-content-center", body)
+  )
+}
+
 # Fetch pitcher data
 get_pitcher_data <- function() {
   headers <- add_headers(`x-api-key` = api_key)
@@ -61,12 +74,12 @@ get_pitch_data <- function(player_id, start_date, end_date) {
       pitch_data <- as.data.frame(parsed_data$data)
       
       pitch_data$date <- as.Date(pitch_data$date)
-      filtered_data <- subset(pitch_data, date >= start_date & date <= end_date)
+      cleaned_data <- subset(pitch_data, date >= start_date & date <= end_date)
       
       print(paste("\nFiltered pitches for Player ID:", player_id))
-      print(head(filtered_data, 5))  # ✅ PRINT TO CONSOLE ONLY
+      print(head(cleaned_data, 5))  # ✅ PRINT TO CONSOLE ONLY
       
-      return(filtered_data)
+      return(cleaned_data)
     } else {
       print("⚠️ No pitch data found for this player.")
     }
@@ -113,16 +126,69 @@ ui <- fluidPage(
            h3("Pitcher Information"),
            uiOutput("player_info")
     )
+  ),
+  fluidRow(
+    column(12, 
+           card_w_header("Gamesplits:", tableOutput("game_log"))  # Placeholder table in full width
+    )
+  ),
+  
+  fluidRow(
+    column(6,  # Main content takes up 2/3 of the screen
+           card_w_header("Breaks", plotOutput("scatterPlot", height = "300px")) # Correct way to set height for plotOutput
+    ),
+    # column(6, 
+    #        card_w_header("Heat Maps", plotOutput("heatmaps", height = "300px")) # Correct way to set height for plotOutput
+    # )
+  ),
+  fluidRow(
+    column(3,  # Sidebar takes up 1/3 of the screen
+           # textOutput("pitcher_hand"),
+           # textOutput("pitcher_id"),
+           radioButtons("break_type", "Select Break Type:",
+                        choices = c("Vertical Break" = "induced_vert_break",
+                                    "Horizontal Break" = "horz_break"),
+                        selected = "induced_vert_break")
+           
+    ),
+    column(3,  # Sidebar takes up 1/3 of the screen
+           # textOutput("pitcher_hand"),
+           # textOutput("pitcher_id"),
+           
+           radioButtons("tag_choice", "Select Pitch Tagging Method:",
+                        choices = c("Human Tagged" = "tagged_pitch_type",
+                                    "Machine Tagged" = "auto_pitch_type"),
+                        selected = "auto_pitch_type")
+           
+    ),
+    column(6, 
+           card_w_no_header(selectizeInput("pitch_type", "Choose a pitch type:", choices = NULL, options = list(placeholder = 'Type to search...', onInitialize = I('function() { this.setValue(""); }')))),
+    )
   )
 )
 
 # Server
 server <- function(input, output, session) {
-  
+  filter_data <- reactive({
+    player_id <- selected_pitcher()$player_id
+    start_date <- input$date_range[1]
+    end_date <- input$date_range[2]
+
+    if (!is.null(player_id) && length(player_id) > 0) {
+      get_pitch_data(player_id, start_date, end_date)  # Get the data
+    } else {
+      NULL
+    }
+  })
   selected_pitcher <- reactive({
     pitcher_data[pitcher_data$player_name == input$selected_player, ]
   })
   
+  # filtered_data <- reactive({
+  #   req(input$selected_pitcher)
+  #   get_data() %>% filter(Pitcher == input$selected_pitcher)
+  #   
+  # })
   output$player_info <- renderUI({
     player_name <- selected_pitcher()$player_name
     player_id <- selected_pitcher()$player_id
@@ -159,21 +225,78 @@ server <- function(input, output, session) {
       WHIP = round(runif(1, 1.10, 1.50), 2)  
     )
   })
+  output$game_log <- renderTable({
+    data.frame(
+      Game = 1:3,
+      Rslt = c("W", "W", "L"),
+      ERA = round(runif(3, 3.00, 6.00), 2),
+      G = sample(1:5, 3, replace = TRUE),
+      IP = round(runif(3, 4.0, 9.0), 1),
+      H = sample(3:10, 3, replace = TRUE),
+      R = sample(2:7, 3, replace = TRUE),
+      ER = sample(2:7, 3, replace = TRUE),
+      HR = sample(0:2, 3, replace = TRUE),
+      BB = sample(1:5, 3, replace = TRUE),
+      WHIP = round(runif(3, 1.10, 1.50), 2),
+      SO = sample(3:10, 3, replace = TRUE), 
+      AVG = round(runif(3, 0.200, 0.350), 3)
+    )
+  })
   
-  observeEvent({
-    input$selected_player
-    input$date_range
-  }, {
-    req(input$selected_player, input$date_range)
-    
-    player_id <- selected_pitcher()$player_id
-    start_date <- input$date_range[1]
-    end_date <- input$date_range[2]
-    
-    if (!is.null(player_id) && length(player_id) > 0) {
-      get_pitch_data(player_id, start_date, end_date)  # ✅ Only prints to console
+  
+  
+  # Scatter plot for Break vs RelSpeed
+  output$scatterPlot <- renderPlot({
+    # filtered_data <- NULL
+    # player_id <- selected_pitcher()$player_id
+    # start_date <- input$date_range[1]
+    # end_date <- input$date_range[2]
+    # if (!is.null(player_id) && length(player_id) > 0) {
+    #   filtered_data <- get_pitch_data(player_id, start_date, end_date)
+    #   # print(head(filtered_data, 5))
+    # }    
+    filtered_data <- filter_data()
+    # print("printing NOW")
+    # print(head(filtered_data, 5))
+    if (!is.null(filtered_data) & nrow(filtered_data) > 0) {
+      #Tag_name =  get(input$tag_choice)
+      filtered_data$TagStatus <- ifelse(filtered_data[[input$tag_choice]] == "Undefined" | is.na(filtered_data[[input$tag_choice]]), "Untagged", as.character(filtered_data[[input$tag_choice]]))
+  
+      
+      ggplot(filtered_data, aes(x = rel_speed, y = filtered_data[[input$break_type]], color = TagStatus)) +
+        geom_point(alpha = 0.7, size = 2) +
+        labs(title = paste(input$break_type, "vs. Velocity" ),
+             x = "Velocity",
+             y = input$break_type) +
+        theme_minimal() +
+        scale_color_manual("Pitch Tag", values = c("Fastball" = "red", 
+                                                   "Four-Seam" = "red",
+                                                   "Changeup" = "blue", 
+                                                   "ChangeUp" = "blue", 
+                                                   "Sinker" = "green", 
+                                                   "Curveball" = "yellow", 
+                                                   "Slider" = "purple", 
+                                                   "Splitter" = "black", 
+                                                   "Cutter" = "pink",
+                                                   "Untagged" = "gray")) # Custom colors (optional)
     }
   })
+  # source('getHeatMap.R')
+  # 
+  # # Create the heatmaps as a reactive expressions based on a dropdown
+  # 
+  # # updateSelectizeInput(session, "heatPitchType", choices = c("FB", "SL", "CB", "CH"), server = TRUE)
+  # 
+  # heatmap_plots <- reactive({
+  #   req(filtered_data)
+  #   build_heatmap(filtered_data)
+  # })
+  # 
+  # # Render the heatmaps in plot form (will be put in a card in the UI)
+  # 
+  # output$heatmaps <- renderPlot({
+  #   heatmap_plots()
+  # })
 }
 
 shinyApp(ui, server)
