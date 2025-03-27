@@ -436,7 +436,10 @@ ui <- fluidPage(
                                                     "Machine Tagged" = "auto_pitch_type"))
                          )
            )
-    )
+    ),
+    column(6,            
+           card_w_header("Heat Maps", plotOutput("heatmaps", height = "300px")) # Correct way to set height for plotOutput
+)
   ),
   
   fluidRow(
@@ -553,6 +556,23 @@ server <- function(input, output, session) {
           "Untagged" = "gray"
         ))
     }
+  })
+  source('getHeatmap.R')
+  
+  # Create the heatmaps as a reactive expressions based on a dropdown
+  
+  # updateSelectizeInput(session, "heatPitchType", choices = c("FB", "SL", "CB", "CH"), server = TRUE)
+  
+  heatmap_plots <- reactive({
+    data <- pitch_data()
+    req(data)
+    build_heatmap(data)
+  })
+  
+  # Render the heatmaps in plot form (will be put in a card in the UI)
+  
+  output$heatmaps <- renderPlot({
+    heatmap_plots()
   })
 }
 
