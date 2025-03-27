@@ -26,10 +26,10 @@ build_heatmap <- function(filtered_df) {
     return(heatmap_viz)
   }
   
-  # Filter out rows where PlateLocSide or PlateLocHeight is NA or infinite
+  # Filter out rows where plate_loc_side or plate_loc_height is NA or infinite
   filtered_df <- filtered_df %>%
-    filter(!is.na(PlateLocSide), !is.na(PlateLocHeight), 
-           is.finite(PlateLocSide), is.finite(PlateLocHeight))
+    filter(!is.na(plate_loc_side), !is.na(plate_loc_height), 
+           is.finite(plate_loc_side), is.finite(plate_loc_height))
   
   # Check if the data is empty after filtering
   if (nrow(filtered_df) == 0) {
@@ -42,7 +42,7 @@ build_heatmap <- function(filtered_df) {
   y_grid <- seq(0, 4, length.out = 100)
   
   # Create a 2D kernel density estimate (KDE)
-  kde <- kde2d(filtered_df$PlateLocSide, filtered_df$PlateLocHeight, h = 1, n = 100, lims = c(range(x_grid), range(y_grid)))
+  kde <- kde2d(filtered_df$plate_loc_side, filtered_df$plate_loc_height, h = 1, n = 100, lims = c(range(x_grid), range(y_grid)))
   
   # Expand these density estimates into a dataframe and filter out densities that are very sparse
   df <- expand.grid(x = kde$x, y = kde$y) %>%
@@ -85,7 +85,7 @@ build_heatmap <- function(filtered_df) {
 #   
 #   # Filter for hard-hit balls with ExitSpeed > 95 for selected pitch type
 #   # hard_hit_balls <- user_filtered_data %>%
-#   #   filter(!is.na(ExitSpeed) & !is.na(PlateLocHeight) & (PitchCall == "InPlay")) %>%
+#   #   filter(!is.na(ExitSpeed) & !is.na(plate_loc_height) & (PitchCall == "InPlay")) %>%
 #   #   filter(ExitSpeed > 95) %>%
 #   #   filter(AutoPitchType == heat_pitch_type)  # Filter based on selected pitch type
 #   
