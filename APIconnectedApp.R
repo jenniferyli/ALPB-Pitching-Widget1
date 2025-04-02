@@ -1,6 +1,7 @@
 library(shiny)
 library(httr)
 library(jsonlite)
+library(DT)
 library(ggplot2)
 
 api_key <- "IuHgm3smV65kbC6lMlMLz80DOeEkGSiV6USoQhvZ"
@@ -39,41 +40,93 @@ get_pitcher_data <- function() {
   return(all_data)
 }
 
-# Fetch pitch data and filter by date
 get_pitch_data <- function(player_id, start_date = NULL, end_date = NULL) {
   if (is.null(player_id) || length(player_id) == 0) {
     warning("Invalid player_id provided.")
     return(NULL)
   }
   
-  url <- paste0(pitches_url, "?pitcher_id=", player_id)
   headers <- add_headers(`x-api-key` = api_key)
-  response <- GET(url, headers)
+  all_data <- data.frame()
+  page <- 1
   
-  if (status_code(response) == 200) {
-    data <- content(response, as = "text", encoding = "UTF-8")
-    parsed <- fromJSON(data, flatten = TRUE)
+  repeat {
+    url <- paste0(pitches_url, "?pitcher_id=", player_id, "&page=", page)
+    response <- GET(url, headers)
     
-    if (!is.null(parsed$data) && length(parsed$data) > 0) {
-      df <- as.data.frame(parsed$data)
+    if (status_code(response) == 200) {
+      data <- content(response, as = "text", encoding = "UTF-8")
+      parsed <- fromJSON(data, flatten = TRUE)
       
-      # Filter by date if provided
-      if (!is.null(start_date) && !is.null(end_date) && "date" %in% names(df)) {
-        df$date <- as.Date(df$date)
-        df <- df[df$date >= start_date & df$date <= end_date, ]
+      if (!is.null(parsed$data) && length(parsed$data) > 0) {
+        all_data <- rbind(all_data, parsed$data)
+        page <- page + 1
+      } else {
+        break  # No more data to fetch
       }
-      
-      cat("\n✅ Pitch data for player_id:", player_id, "\n")
-      print(head(df, 10))
-      return(df)
     } else {
-      warning("No pitch data found for this player.")
-      return(NULL)
+      stop(paste("API Error:", status_code(response)))
     }
-  } else {
-    stop(paste("API Error:", status_code(response)))
   }
+  
+  # Optional: filter by date
+  if (nrow(all_data) > 0 && !is.null(start_date) && !is.null(end_date) && "date" %in% names(all_data)) {
+    all_data$date <- as.Date(all_data$date)
+    all_data <- all_data[all_data$date >= start_date & all_data$date <= end_date, ]
+  }
+  
+  cat("\n✅ Total pitch records fetched:", nrow(all_data), "\n")
+  return(all_data)
 }
+
+
+# get_pitch_data <- function(player_id, start_date = NULL, end_date = NULL) {
+#   if (is.null(player_id) || length(player_id) == 0) {
+#     warning("Invalid player_id provided.")
+#     return(NULL)
+#   }
+#   
+#   headers <- add_headers(`x-api-key` = api_key)
+#   all_data <- data.frame()
+#   page <- 1
+#   limit <- 20
+#   total <- 1  # temp fallback to enter the loop
+#   
+#   repeat {
+#     url <- paste0(pitches_url, "?pitcher_id=", player_id, "&page=", page)
+#     response <- GET(url, headers)
+#     
+#     if (status_code(response) == 200) {
+#       data <- content(response, as = "text", encoding = "UTF-8")
+#       parsed <- fromJSON(data, flatten = TRUE)
+#       
+#       if (!is.null(parsed$data) && length(parsed$data) > 0) {
+#         all_data <- rbind(all_data, parsed$data)
+#       }
+#       
+#       # Extract pagination info
+#       total <- parsed$meta$total
+#       limit <- parsed$meta$limit
+#       total_pages <- ceiling(total / limit)
+#       
+#       if (page >= total_pages) break
+#       page <- page + 1
+#     } else {
+#       stop(paste("API Error:", status_code(response)))
+#     }
+#   }
+#   
+#   # Optional: filter by date
+#   if (nrow(all_data) > 0 && !is.null(start_date) && !is.null(end_date) && "date" %in% names(all_data)) {
+#     all_data$date <- as.Date(all_data$date)
+#     all_data <- all_data[all_data$date >= start_date & all_data$date <= end_date, ]
+#   }
+#   
+#   cat("\n✅ Total pitch records fetched:", nrow(all_data), "\n")
+#   return(all_data)
+# }
+# 
+
 
 # UI Card Helper
 card_w_header <- function(title, body) {
@@ -142,14 +195,16 @@ ui <- fluidPage(
                     )
              ),
              column(6,            
-                    card_w_header("Heat Maps", plotOutput("heatmaps", height = "300px"))
+                    card_w_header("Strike Zone", plotOutput("heatmaps", height = "300px"))
              )
            ),
            
            fluidRow(
              column(12,
                     h3("Pitch Data for Selected Pitcher"),
-                    tableOutput("player_pitches_table")
+                    # tableOutput("player_pitches_table")
+                    DTOutput("player_pitches_table")
+                    
              )
            )
     ),
@@ -208,14 +263,15 @@ server <- function(input, output, session) {
     )
   })
   
-  output$player_pitches_table <- renderTable({
+  output$player_pitches_table <- renderDT({
     df <- pitch_data()
     if (!is.null(df) && nrow(df) > 0) {
-      df
+      datatable(df, options = list(pageLength = 25, scrollX = TRUE))
     } else {
-      data.frame(Message = "No pitch data available for this player.")
+      datatable(data.frame(Message = "No pitch data available for this player."))
     }
   })
+  
   
   output$game_log <- renderTable({
         data.frame(
