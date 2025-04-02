@@ -8,7 +8,7 @@ api_key <- "IuHgm3smV65kbC6lMlMLz80DOeEkGSiV6USoQhvZ"
 players_url <- "https://1ywv9dczq5.execute-api.us-east-2.amazonaws.com/ALPBAPI/players"
 pitches_url <- "https://1ywv9dczq5.execute-api.us-east-2.amazonaws.com/ALPBAPI/pitches"
 
-# Fetch pitcher data
+# fetch pitcher data
 get_pitcher_data <- function() {
   headers <- add_headers(`x-api-key` = api_key)
   
@@ -62,70 +62,24 @@ get_pitch_data <- function(player_id, start_date = NULL, end_date = NULL) {
         all_data <- rbind(all_data, parsed$data)
         page <- page + 1
       } else {
-        break  # No more data to fetch
+        break  
       }
     } else {
       stop(paste("API Error:", status_code(response)))
     }
   }
   
-  # Optional: filter by date
+  # filter by date
   if (nrow(all_data) > 0 && !is.null(start_date) && !is.null(end_date) && "date" %in% names(all_data)) {
-    all_data$date <- as.Date(all_data$date)
+    all_data$date <- as.Date(all_data$date)  # direct conversion is safe
     all_data <- all_data[all_data$date >= start_date & all_data$date <= end_date, ]
   }
+  
   
   cat("\n✅ Total pitch records fetched:", nrow(all_data), "\n")
   return(all_data)
 }
 
-
-# get_pitch_data <- function(player_id, start_date = NULL, end_date = NULL) {
-#   if (is.null(player_id) || length(player_id) == 0) {
-#     warning("Invalid player_id provided.")
-#     return(NULL)
-#   }
-#   
-#   headers <- add_headers(`x-api-key` = api_key)
-#   all_data <- data.frame()
-#   page <- 1
-#   limit <- 20
-#   total <- 1  # temp fallback to enter the loop
-#   
-#   repeat {
-#     url <- paste0(pitches_url, "?pitcher_id=", player_id, "&page=", page)
-#     response <- GET(url, headers)
-#     
-#     if (status_code(response) == 200) {
-#       data <- content(response, as = "text", encoding = "UTF-8")
-#       parsed <- fromJSON(data, flatten = TRUE)
-#       
-#       if (!is.null(parsed$data) && length(parsed$data) > 0) {
-#         all_data <- rbind(all_data, parsed$data)
-#       }
-#       
-#       # Extract pagination info
-#       total <- parsed$meta$total
-#       limit <- parsed$meta$limit
-#       total_pages <- ceiling(total / limit)
-#       
-#       if (page >= total_pages) break
-#       page <- page + 1
-#     } else {
-#       stop(paste("API Error:", status_code(response)))
-#     }
-#   }
-#   
-#   # Optional: filter by date
-#   if (nrow(all_data) > 0 && !is.null(start_date) && !is.null(end_date) && "date" %in% names(all_data)) {
-#     all_data$date <- as.Date(all_data$date)
-#     all_data <- all_data[all_data$date >= start_date & all_data$date <= end_date, ]
-#   }
-#   
-#   cat("\n✅ Total pitch records fetched:", nrow(all_data), "\n")
-#   return(all_data)
-# }
-# 
 
 
 # UI Card Helper
@@ -140,7 +94,7 @@ card_w_header <- function(title, body) {
   )
 }
 
-# Load pitcher data
+# load pitcher data
 pitcher_data <- get_pitcher_data()
 
 ui <- fluidPage(
@@ -213,7 +167,7 @@ ui <- fluidPage(
 )
 
 
-# Server
+# server
 server <- function(input, output, session) {
   
   selected_pitcher <- reactive({
@@ -323,17 +277,14 @@ server <- function(input, output, session) {
   })
   source('getHeatmap.R')
   
-  # Create the heatmaps as a reactive expressions based on a dropdown
-  
-  # updateSelectizeInput(session, "heatPitchType", choices = c("FB", "SL", "CB", "CH"), server = TRUE)
+ #heatmaps
   
   heatmap_plots <- reactive({
     data <- pitch_data()
     req(data)
     build_heatmap(data)
   })
-  
-  # Render the heatmaps in plot form (will be put in a card in the UI)
+
   
   output$heatmaps <- renderPlot({
     heatmap_plots()
