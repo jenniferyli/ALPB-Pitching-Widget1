@@ -118,7 +118,7 @@ ui <- fluidPage(
              ), 
              
              column(2,
-                    card_w_header("Export as PDF", div("coming soon!!"))
+                    card_w_header("Export as PDF", actionButton("createPDF", "Generate!", class = "btn btn-primary btn-primary bg-info"))
              )
            ),
            
@@ -261,7 +261,7 @@ server <- function(input, output, session) {
       df$TagStatus <- ifelse(df[[input$tag_choice]] == "Undefined" | is.na(df[[input$tag_choice]]),
                              "Untagged", as.character(df[[input$tag_choice]]))
       
-      ggplot(df, aes(x = rel_speed, y = df[[input$break_type]], color = TagStatus)) +
+      ggplot(df, aes(x = rel_speed, y = .data[[input$break_type]], color = TagStatus)) +
         geom_point(alpha = 0.7, size = 2) +
         labs(title =paste(input$break_type, "vs. Velocity"),
              x = "Velocity",
@@ -294,6 +294,24 @@ server <- function(input, output, session) {
   
   output$heatmaps <- renderPlot({
     heatmap_plots()
+  })
+  
+  source('getPDFReport.R')
+  
+  # when the Create PDF button is clicked, show the page spinner and call the rendering function
+  # once the PDF is done rendering, show a modal explaining that it has been created and downloaded
+  # ui <- page_fluid(
+  #   # Existing UI components
+  #   
+  #   # Add Create PDF Button
+  #   downloadButton("create_pdf", "Create PDF")
+  # )
+  
+  observeEvent(input$createPDF, {
+    # name = pitcher_data$player_name
+    get_blank_pdf(input$selected_player, input$date_range[1],
+                   input$date_range[2])
+    
   })
 }
 

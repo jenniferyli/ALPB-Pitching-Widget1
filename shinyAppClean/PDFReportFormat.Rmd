@@ -1,0 +1,34 @@
+---
+output: pdf_document
+header-includes:
+  - \pagenumbering{gobble}
+  - \usepackage{multicol}
+  - \usepackage{graphicx}
+  - \graphicspath{ {.} }
+geometry: margin = 0.25in
+date: "`r Sys.Date()`"
+params:
+  report_header: report_header
+  player_name: NULL
+  player_id: NULL
+  season_stats: NULL
+  game_log: NULL
+  scatter_plot: NULL
+  heatmaps: NULL
+  date_range: NULL
+---
+\begin{multicols}{2} % Create a 2-column layout to hold the header logo, player name, and date range
+
+% Left Column - Player Name
+\vfill
+\large\textbf{`r paste0(params$report_header[[1]], " Pitching")`} % Player name
+\vfill
+
+\columnbreak % Move to the second column
+
+% Right Column - Date Range
+\vfill
+\large\textbf{`r paste0(params$report_header[[2]], " to ", params$report_header[[3]])`} % Date range
+\vfill
+
+\end{multicols}
