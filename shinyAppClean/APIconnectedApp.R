@@ -139,7 +139,7 @@ ui <- fluidPage(
            
            fluidRow(
              column(6,
-                    card_w_header("Break vs Velocity", plotOutput("scatterPlot", height = "300px"))
+                    card_w_header(uiOutput("scatter_header"), plotOutput("scatterPlot", height = "300px"))
              ),
              
              column(6,            
@@ -174,6 +174,14 @@ ui <- fluidPage(
 
 # server
 server <- function(input, output, session) {
+  
+  output$scatter_header <- renderUI({
+    if(input$break_type == "induced_vert_break") {
+      tagList("Vertical Break vs Velocity")  # Dynamic header for the plot
+    } else if(input$break_type == "horz_break") {
+      tagList("Horizontal Break vs Velocity")  # Dynamic header for the plot
+    }
+  })
   
   selected_pitcher <- reactive({
     pitcher_data[pitcher_data$player_name == input$selected_player, ]
