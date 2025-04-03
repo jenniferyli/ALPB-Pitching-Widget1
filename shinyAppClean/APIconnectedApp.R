@@ -269,7 +269,7 @@ server <- function(input, output, session) {
           "Changeup" = "blue", 
           "ChangeUp" = "blue", 
           "Sinker" = "green", 
-          "Curveball" = "yellow", 
+          "Curveball" = "brown", 
           "Slider" = "purple", 
           "Splitter" = "black", 
           "Cutter" = "pink",
