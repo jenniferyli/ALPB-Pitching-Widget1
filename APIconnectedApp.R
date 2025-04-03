@@ -247,7 +247,7 @@ server <- function(input, output, session) {
       
       ggplot(df, aes(x = rel_speed, y = df[[input$break_type]], color = TagStatus)) +
         geom_point(alpha = 0.7, size = 2) +
-        labs(title = paste(input$break_type, "vs. Velocity"),
+        labs(title =paste(input$break_type, "vs. Velocity"),
              x = "Velocity",
              y = input$break_type) +
         theme_minimal() +
@@ -285,3 +285,4 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
+
