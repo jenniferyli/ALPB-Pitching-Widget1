@@ -133,26 +133,26 @@ ui <- fluidPage(
            ),
            
            fluidRow(
-             column(4,
+             column(6,
                     card_w_header("Break vs Velocity", plotOutput("scatterPlot", height = "300px"))
              ),
-             column(2,
-                    card_w_header("Graph Controls",
-                                  tagList(
-                                    radioButtons("break_type", "Break Type:",
-                                                 choices = c("Vertical Break" = "induced_vert_break",
-                                                             "Horizontal Break" = "horz_break")),
-                                    radioButtons("tag_choice", "Pitch Tagging Method:",
-                                                 choices = c("Human Tagged" = "tagged_pitch_type",
-                                                             "Machine Tagged" = "auto_pitch_type"))
-                                  )
-                    )
-             ),
+             
              column(6,            
                     card_w_header("Strike Zone", plotOutput("heatmaps", height = "300px"))
              )
            ),
-           
+           fluidRow(column(3,
+                           radioButtons("break_type", "Break Type:",
+                                        choices = c("Vertical Break" = "induced_vert_break",
+                                                    "Horizontal Break" = "horz_break")),
+                                           
+                            
+              ), column(3,  radioButtons("tag_choice", "Pitch Tagging Method:",
+                                         choices = c("Machine Tagged" = "auto_pitch_type",
+                                                      "Human Tagged" = "tagged_pitch_type")
+                                         )
+              )
+           ),
            fluidRow(
              column(12,
                     h3("Pitch Data for Selected Pitcher"),
