@@ -1,0 +1,10 @@
+name: apiconnectedapp
+title:
+username: jnli
+account: jnli
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14423857
+bundleId: 10052034
+url: https://jnli.shinyapps.io/apiconnectedapp/
+version: 1
