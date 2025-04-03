@@ -263,9 +263,9 @@ server <- function(input, output, session) {
       
       ggplot(df, aes(x = rel_speed, y = .data[[input$break_type]], color = TagStatus)) +
         geom_point(alpha = 0.7, size = 2) +
-        labs(title =paste("Break vs. Velocity"),
-             x = "Velocity",
-             y = "Break") +
+        labs(
+             x = "Velocity (mph)",
+             y = "Break (inches)") +
         theme_minimal() +
         scale_color_manual("Pitch Tag", values = c(
           "Fastball" = "red", 
