@@ -113,8 +113,12 @@ ui <- fluidPage(
                                      end = Sys.Date())
                     )
              ),
-             column(8,
+             column(6,
                     card_w_header("Season Stats", tableOutput("season_log"))
+             ), 
+             
+             column(2,
+                    card_w_header("Export as PDF", div("coming soon!!"))
              )
            ),
            
