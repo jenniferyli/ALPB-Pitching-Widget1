@@ -139,11 +139,12 @@ ui <- fluidPage(
            
            fluidRow(
              column(6,
-                    card_w_header(uiOutput("scatter_header"), plotOutput("scatterPlot", height = "300px"))
+                    card_w_header(uiOutput("scatter_header"), plotOutput("velPlot", height = "300px"))
              ),
              
-             column(6,            
-                    card_w_header("Strike Zone", plotOutput("heatmaps", height = "300px"))
+             column(6,
+                    card_w_header("Induced Vertical Break vs Horizontal Break", plotOutput("breakPlot", height = "300px"))
+                    # card_w_header("Strike Zone", plotOutput("heatmaps", height = "300px"))
              )
            ),
            fluidRow(column(3,
@@ -259,7 +260,7 @@ server <- function(input, output, session) {
         )
       })
   
-  output$scatterPlot <- renderPlot({
+  output$velPlot <- renderPlot({
     df <- pitch_data()
     
     if (!is.null(df) && nrow(df) > 0 &&
@@ -274,6 +275,37 @@ server <- function(input, output, session) {
         labs(
              x = "Velocity (mph)",
              y = "Break (inches)") +
+        theme_minimal() +
+        scale_color_manual("Pitch Tag", values = c(
+          "Fastball" = "red", 
+          "Four-Seam" = "red",
+          "Changeup" = "blue", 
+          "ChangeUp" = "blue", 
+          "Sinker" = "green", 
+          "Curveball" = "brown", 
+          "Slider" = "purple", 
+          "Splitter" = "black", 
+          "Cutter" = "pink",
+          "Untagged" = "gray"
+        ))
+    }
+  })
+  
+  output$breakPlot <- renderPlot({
+    df <- pitch_data()
+    
+    if (!is.null(df) && nrow(df) > 0 &&
+        "induced_vert_break" %in% names(df) &&
+        "horz_break" %in% names(df)) {
+      
+      df$TagStatus <- ifelse(df[[input$tag_choice]] == "Undefined" | is.na(df[[input$tag_choice]]),
+                             "Untagged", as.character(df[[input$tag_choice]]))
+      
+      ggplot(df, aes(x = horz_break, y = induced_vert_break, color = TagStatus)) +
+        geom_point(alpha = 0.7, size = 2) +
+        labs(
+          x = "Horizontal Break (inches)",
+          y = "Induced Vertical Break (inches)") +
         theme_minimal() +
         scale_color_manual("Pitch Tag", values = c(
           "Fastball" = "red", 
