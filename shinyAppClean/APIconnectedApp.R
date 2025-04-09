@@ -118,7 +118,8 @@ ui <- fluidPage(
              ), 
              
              column(2,
-                    card_w_header("Export as PDF", actionButton("createPDF", "Generate!", class = "btn btn-primary btn-primary bg-info"))
+                    #card_w_header("Export as PDF", actionButton("createPDF", "Generate!", class = "btn btn-primary btn-primary bg-info"))
+                    downloadButton("download_pdf", "Download PDF")
              )
            ),
            
@@ -347,12 +348,25 @@ server <- function(input, output, session) {
   #   downloadButton("create_pdf", "Create PDF")
   # )
   
-  observeEvent(input$createPDF, {
-    # name = pitcher_data$player_name
-    get_blank_pdf(input$selected_player, input$date_range[1],
-                   input$date_range[2])
-    
-  })
+  # observeEvent(input$createPDF, {
+  #   # name = pitcher_data$player_name
+  #   get_blank_pdf(input$selected_player, input$date_range[1],
+  #                  input$date_range[2])
+  #   
+  # })
+  output$download_pdf <- downloadHandler(
+    filename = function() {
+      paste0(selected_pitcher()$player_name, "_Pitcher_Report.pdf")
+    },
+    content = function(file) {
+      # Generate the PDF
+      pdf_path <- get_blank_pdf(pitcher_data$player_name, input$date_range[1],input$date_range[2])
+      
+      # Copy it to the file path that downloadHandler expects
+      file.copy(pdf_path, file)
+    },
+    contentType = "application/pdf"
+  )
 }
 
 shinyApp(ui, server)
