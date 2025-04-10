@@ -257,7 +257,7 @@ server <- function(input, output, session) {
         )
       })
   
-  # source('getGraphs.R')
+ source('getGraphs.R')
   output$velPlot <- renderPlot({
     build_graph(pitch_data(), "rel_speed", input$break_type, input$tag_choice)
   })
