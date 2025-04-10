@@ -21,20 +21,14 @@ get_blank_pdf <- function(df, name, date1, date2) {
   VI_graph <- build_graph_with_title(df, "rel_speed", "induced_vert_break", "auto_pitch_type")
   VH_graph <- build_graph_with_title(df, "rel_speed", "horz_break", "auto_pitch_type")
   
-  # combined_plot <- HI_graph + VI_graph + VH_graph + plot_layout(ncol = 3)
-  
-  # combined_plot <- HI_graph + VI_graph + VH_graph + plot_layout(ncol = 3) +
-  #   theme(
-  #     legend.position = "bottom",  # Move the legend below the plots
-  #   )
   
   combined_plot <- HI_graph + VI_graph + VH_graph + 
     plot_layout(ncol = 3, 
-                guides = "collect") &   # Collects the legends from all plots
+                guides = "collect") &   
     theme(
-      legend.position = "bottom",     # Position the legend below all plots
-      legend.title = element_text(size = 7),  # Customize legend title size
-      legend.text = element_text(size = 6)     # Customize legend text size
+      legend.position = "bottom",     
+      legend.title = element_text(size = 7), 
+      legend.text = element_text(size = 6)    
     )
   
   
@@ -44,7 +38,7 @@ get_blank_pdf <- function(df, name, date1, date2) {
                     params = list(report_header = report_header,
                                   combined_plot = combined_plot
                     ),
-                    envir = new.env(parent = globalenv()))  # prevent param conflicts
+                    envir = new.env(parent = globalenv())) 
   
   return(output_path)
   

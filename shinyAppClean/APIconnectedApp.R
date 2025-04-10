@@ -4,6 +4,8 @@ library(jsonlite)
 library(DT)
 library(rsconnect)
 library(ggplot2)
+library(tidyr)
+
 
 api_key <- "IuHgm3smV65kbC6lMlMLz80DOeEkGSiV6USoQhvZ"
 players_url <- "https://1ywv9dczq5.execute-api.us-east-2.amazonaws.com/ALPBAPI/players"
@@ -159,15 +161,10 @@ ui <- fluidPage(
                                                       "Human Tagged" = "tagged_pitch_type")
                                          )
               )
-           )
-           # fluidRow(
-           #   column(12,
-           #          h3("Pitch Data for Selected Pitcher"),
-           #          # tableOutput("player_pitches_table")
-           #          DTOutput("player_pitches_table")
-           #          
-           #   )
-           # )
+           ),
+           fluidRow(column(12,
+                           card_w_header("Pitch Type Percentages for Each Count",DTOutput("pitchTable"))))
+           
     ),
     column(1)
   )
@@ -297,6 +294,32 @@ server <- function(input, output, session) {
     },
     contentType = "application/pdf"
   )
+  
+  source("pitchSplit.R")
+  # pitch_percentages <- reactive({
+  #   req(pitch_data())  
+  #   get_pitch_type_percentages(pitch_data())
+  # })
+  
+  # # Render the data table
+  # output$pitchTable <- renderDT({
+  #   req(pitch_percentages())  
+  #   datatable(pitch_percentages(), options = list(pageLength = 10))
+  # })
+  
+  # pivoted_data <- reactive({
+  #   req(pitch_percentages())  # Ensure percentages are available
+  #   
+  #   pitch_percentages() %>%
+  #     pivot_wider(names_from = count, values_from = Percentage, values_fill = list(Percentage = 0)) %>%
+  #     arrange(auto_pitch_type)  # Sort by pitch type
+  # })
+  
+  # Render the data table
+  output$pitchTable <- renderDT({
+    df <- get_pitch_type_percentages(pitch_data())
+    datatable(df, options = list(pageLength = 12, scrollX = TRUE))  # Display the table
+  })
 }
 
 shinyApp(ui, server)
