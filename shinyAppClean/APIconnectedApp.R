@@ -200,7 +200,6 @@ server <- function(input, output, session) {
   
   output$player_info <- renderUI({
     player <- selected_pitcher()
-    
     if (nrow(player) > 0) {
       tagList(
         h4(HTML(player$player_name)),
@@ -261,7 +260,7 @@ server <- function(input, output, session) {
         )
       })
   
-  source('getGraphs.R')
+  # source('getGraphs.R')
   output$velPlot <- renderPlot({
     build_graph(pitch_data(), "rel_speed", input$break_type, input$tag_choice)
   })
@@ -285,29 +284,13 @@ server <- function(input, output, session) {
   })
   
   source('getPDFReport.R')
-  
-  # when the Create PDF button is clicked, show the page spinner and call the rendering function
-  # once the PDF is done rendering, show a modal explaining that it has been created and downloaded
-  # ui <- page_fluid(
-  #   # Existing UI components
-  #   
-  #   # Add Create PDF Button
-  #   downloadButton("create_pdf", "Create PDF")
-  # )
-  
-  # observeEvent(input$createPDF, {
-  #   # name = pitcher_data$player_name
-  #   get_blank_pdf(input$selected_player, input$date_range[1],
-  #                  input$date_range[2])
-  #   
-  # })
   output$download_pdf <- downloadHandler(
     filename = function() {
       paste0(selected_pitcher()$player_name, "_Pitcher_Report.pdf")
     },
     content = function(file) {
       # Generate the PDF
-      pdf_path <- get_blank_pdf(pitcher_data$player_name, input$date_range[1],input$date_range[2])
+      pdf_path <- get_blank_pdf(pitch_data(), selected_pitcher()$player_name, input$date_range[1],input$date_range[2])
       
       # Copy it to the file path that downloadHandler expects
       file.copy(pdf_path, file)

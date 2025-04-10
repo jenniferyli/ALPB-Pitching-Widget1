@@ -9,13 +9,7 @@ geometry: margin = 0.25in
 date: "`r Sys.Date()`"
 params:
   report_header: report_header
-  player_name: NULL
-  player_id: NULL
-  season_stats: NULL
-  game_log: NULL
-  scatter_plot: NULL
-  heatmaps: NULL
-  date_range: NULL
+  combined_plot: combined_plot
 ---
 \begin{multicols}{2} % Create a 2-column layout to hold the header logo, player name, and date range
 
@@ -32,3 +26,7 @@ params:
 \vfill
 
 \end{multicols}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=4}
+params$combined_plot
+```
