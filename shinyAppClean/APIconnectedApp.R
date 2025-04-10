@@ -261,66 +261,13 @@ server <- function(input, output, session) {
         )
       })
   
+  source('getGraphs.R')
   output$velPlot <- renderPlot({
-    df <- pitch_data()
-    
-    if (!is.null(df) && nrow(df) > 0 &&
-        input$break_type %in% names(df) &&
-        "rel_speed" %in% names(df)) {
-      
-      df$TagStatus <- ifelse(df[[input$tag_choice]] == "Undefined" | is.na(df[[input$tag_choice]]),
-                             "Untagged", as.character(df[[input$tag_choice]]))
-      
-      ggplot(df, aes(x = rel_speed, y = .data[[input$break_type]], color = TagStatus)) +
-        geom_point(alpha = 0.7, size = 2) +
-        labs(
-             x = "Velocity (mph)",
-             y = "Break (inches)") +
-        theme_minimal() +
-        scale_color_manual("Pitch Tag", values = c(
-          "Fastball" = "red", 
-          "Four-Seam" = "red",
-          "Changeup" = "blue", 
-          "ChangeUp" = "blue", 
-          "Sinker" = "green", 
-          "Curveball" = "brown", 
-          "Slider" = "purple", 
-          "Splitter" = "black", 
-          "Cutter" = "pink",
-          "Untagged" = "gray"
-        ))
-    }
+    build_graph(pitch_data(), "rel_speed", input$break_type, input$tag_choice)
   })
   
   output$breakPlot <- renderPlot({
-    df <- pitch_data()
-    
-    if (!is.null(df) && nrow(df) > 0 &&
-        "induced_vert_break" %in% names(df) &&
-        "horz_break" %in% names(df)) {
-      
-      df$TagStatus <- ifelse(df[[input$tag_choice]] == "Undefined" | is.na(df[[input$tag_choice]]),
-                             "Untagged", as.character(df[[input$tag_choice]]))
-      
-      ggplot(df, aes(x = horz_break, y = induced_vert_break, color = TagStatus)) +
-        geom_point(alpha = 0.7, size = 2) +
-        labs(
-          x = "Horizontal Break (inches)",
-          y = "Induced Vertical Break (inches)") +
-        theme_minimal() +
-        scale_color_manual("Pitch Tag", values = c(
-          "Fastball" = "red", 
-          "Four-Seam" = "red",
-          "Changeup" = "blue", 
-          "ChangeUp" = "blue", 
-          "Sinker" = "green", 
-          "Curveball" = "brown", 
-          "Slider" = "purple", 
-          "Splitter" = "black", 
-          "Cutter" = "pink",
-          "Untagged" = "gray"
-        ))
-    }
+    build_graph(pitch_data(), "horz_break", "induced_vert_break", input$tag_choice)
   })
   source('getHeatmap.R')
   
