@@ -80,6 +80,12 @@ get_pitch_data <- function(player_id, start_date = NULL, end_date = NULL) {
   
   
   cat("\n✅ Total pitch records fetched:", nrow(all_data), "\n")
+  if (nrow(all_data) > 0) {
+    cat("📋 First 5 rows of data:\n")
+    print(head(all_data, 5))
+  } else {
+    cat("⚠️ No data to display.\n")
+  }
   return(all_data)
 }
 
@@ -162,6 +168,15 @@ ui <- fluidPage(
                                          )
               )
            ),
+           fluidRow(
+             column(6,
+                    card_w_header("Pitch map vs RH Batters", plotOutput("heatmap_right", height = "300px"))
+             ),
+             
+             column(6,
+                    card_w_header("Pitch map vs LH Batters", plotOutput("heatmap_left", height = "300px"))
+             )
+           ),
            fluidRow(column(12,
                            card_w_header("Pitch Type Percentages for Each Count",DTOutput("pitchTable"))))
            
@@ -228,16 +243,6 @@ server <- function(input, output, session) {
     )
   })
   
-  #display the table 
-  # output$player_pitches_table <- renderDT({
-  #   df <- pitch_data()
-  #   if (!is.null(df) && nrow(df) > 0) {
-  #     datatable(df, options = list(pageLength = 25, scrollX = TRUE))
-  #   } else {
-  #     datatable(data.frame(Message = "No pitch data available for this player."))
-  #   }
-  # })
-  
   
   output$game_log <- renderTable({
         data.frame(
@@ -269,15 +274,29 @@ server <- function(input, output, session) {
   
  #heatmaps
   
-  heatmap_plots <- reactive({
+  # heatmap_plots <- reactive({
+  #   data <- pitch_data()
+  #   req(data)
+  #   build_heatmap(data)
+  # })
+  # 
+  # 
+  # output$heatmaps <- renderPlot({
+  #   heatmap_plots()
+  # })
+  
+  output$heatmap_right <- renderPlot({
     data <- pitch_data()
     req(data)
-    build_heatmap(data)
+    filtered_data <- data[data$batter_side == "Right", ]
+    build_heatmap(filtered_data)
   })
-
   
-  output$heatmaps <- renderPlot({
-    heatmap_plots()
+  output$heatmap_left <- renderPlot({
+    data <- pitch_data()
+    req(data)
+    filtered_data <- data[data$batter_side == "Left", ]
+    build_heatmap(filtered_data)
   })
   
   source('getPDFReport.R')
@@ -296,24 +315,6 @@ server <- function(input, output, session) {
   )
   
   source("pitchSplit.R")
-  # pitch_percentages <- reactive({
-  #   req(pitch_data())  
-  #   get_pitch_type_percentages(pitch_data())
-  # })
-  
-  # # Render the data table
-  # output$pitchTable <- renderDT({
-  #   req(pitch_percentages())  
-  #   datatable(pitch_percentages(), options = list(pageLength = 10))
-  # })
-  
-  # pivoted_data <- reactive({
-  #   req(pitch_percentages())  # Ensure percentages are available
-  #   
-  #   pitch_percentages() %>%
-  #     pivot_wider(names_from = count, values_from = Percentage, values_fill = list(Percentage = 0)) %>%
-  #     arrange(auto_pitch_type)  # Sort by pitch type
-  # })
   
   # Render the data table
   output$pitchTable <- renderDT({

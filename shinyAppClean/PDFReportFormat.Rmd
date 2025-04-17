@@ -4,12 +4,14 @@ header-includes:
   - \pagenumbering{gobble}
   - \usepackage{multicol}
   - \usepackage{graphicx}
+  - \usepackage{longtable}
   - \graphicspath{ {.} }
 geometry: margin = 0.25in
 date: "`r Sys.Date()`"
 params:
   report_header: report_header
   combined_plot: combined_plot
+  pitch_split: pitch_split
 ---
 \begin{multicols}{2} % Create a 2-column layout to hold the header logo, player name, and date range
 
@@ -29,4 +31,10 @@ params:
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=4}
 params$combined_plot
+```
+
+```{r echo=FALSE, fig.height=2, fig.width=9, message=FALSE, warning=FALSE}
+#params$pitch_split
+#library(knitr)
+knitr::kable(params$pitch_split, format="markdown", longtable = T, caption = "Pitch Split Overview")
 ```

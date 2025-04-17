@@ -31,12 +31,15 @@ get_blank_pdf <- function(df, name, date1, date2) {
       legend.text = element_text(size = 6)    
     )
   
+  source('pitchSplit.R')
+  splitDF <- get_pitch_type_percentages(df)
   
   rmarkdown::render("PDFReportFormat.Rmd",
                     output_format = "pdf_document",
                     output_file = output_path,
                     params = list(report_header = report_header,
-                                  combined_plot = combined_plot
+                                  combined_plot = combined_plot,
+                                  pitch_split = splitDF
                     ),
                     envir = new.env(parent = globalenv())) 
   
