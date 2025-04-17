@@ -13,20 +13,27 @@ params:
   combined_plot: combined_plot
   pitch_split: pitch_split
 ---
-\begin{multicols}{2} % Create a 2-column layout to hold the header logo, player name, and date range
 
-% Left Column - Player Name
-\vfill
-\large\textbf{`r paste0(params$report_header[[1]], " Pitching")`} % Player name
-\vfill
+```{r echo=FALSE, message=FALSE}
+cat("DEBUG: params$report_header =\n")
+str(params$report_header)
 
-\columnbreak % Move to the second column
+# Create header strings safely
+header_name <- tryCatch(
+  paste0(params$report_header[["name"]], " Pitching"),
+  error = function(e) "Unknown Player"
+)
 
-% Right Column - Date Range
-\vfill
-\large\textbf{`r paste0(params$report_header[[2]], " to ", params$report_header[[3]])`} % Date range
-\vfill
+header_date <- tryCatch(
+  paste0(params$report_header[["date1"]], " to ", params$report_header[["date2"]]),
+  error = function(e) "Unknown Date Range"
+)
+```
 
+\begin{multicols}{2}
+\large\textbf{`r header_name`}
+\columnbreak
+\large\textbf{`r header_date`}
 \end{multicols}
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=4}
@@ -34,7 +41,5 @@ params$combined_plot
 ```
 
 ```{r echo=FALSE, fig.height=2, fig.width=9, message=FALSE, warning=FALSE}
-#params$pitch_split
-#library(knitr)
-knitr::kable(params$pitch_split, format="markdown", longtable = T, caption = "Pitch Split Overview")
+knitr::kable(params$pitch_split, format="markdown", longtable = TRUE, caption = "Pitch Split Overview")
 ```
