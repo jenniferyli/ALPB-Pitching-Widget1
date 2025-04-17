@@ -166,6 +166,9 @@ ui <- fluidPage(
                                          choices = c("Machine Tagged" = "auto_pitch_type",
                                                       "Human Tagged" = "tagged_pitch_type")
                                          )
+              ),
+              column(3,
+                     uiOutput("pitch_type_ui")
               )
            ),
            fluidRow(
@@ -208,6 +211,25 @@ server <- function(input, output, session) {
       input$date_range[1],
       input$date_range[2]
     )
+  })
+  
+  pitch_types <- reactive({
+    data <- pitch_data()
+    req(data)
+    #unique(na.omit(data$auto_pitch_type)) #Can change to user specification later
+    # Filter out "untagged" values
+    if (input$tag_choice == "auto_pitch_type") {
+      pitch_types <- unique(na.omit(data$auto_pitch_type))
+    } else {
+      pitch_types <- unique(na.omit(data$tagged_pitch_type))
+    }
+      pitch_types <- pitch_types[pitch_types != "Undefined"]
+  })
+  
+  output$pitch_type_ui <- renderUI({
+    req(pitch_types())
+    selectInput("selected_pitch_type", "Select Pitch Type:",
+                choices = c("All", pitch_types()), selected = "All")
   })
   
   output$player_info <- renderUI({
@@ -289,6 +311,14 @@ server <- function(input, output, session) {
     data <- pitch_data()
     req(data)
     filtered_data <- data[data$batter_side == "Right", ]
+    # if (!is.null(input$selected_pitch_type) && input$selected_pitch_type != "All") {
+    #   filtered_data <- filtered_data[filtered_data$auto_pitch_type == input$selected_pitch_type, ]
+    # }
+    if (!is.null(input$selected_pitch_type) && input$tag_choice == "auto_pitch_type" && input$selected_pitch_type != "All") {
+      filtered_data <- filtered_data[filtered_data$auto_pitch_type == input$selected_pitch_type, ]
+    } else if (!is.null(input$selected_pitch_type) && input$tag_choice == "tagged_pitch_type" && input$selected_pitch_type != "All") {
+      filtered_data <- filtered_data[filtered_data$tagged_pitch_type == input$selected_pitch_type, ]
+    }
     build_heatmap(filtered_data)
   })
   
@@ -296,6 +326,14 @@ server <- function(input, output, session) {
     data <- pitch_data()
     req(data)
     filtered_data <- data[data$batter_side == "Left", ]
+    # if (!is.null(input$selected_pitch_type) && input$selected_pitch_type != "All") {
+    #   filtered_data <- filtered_data[filtered_data$auto_pitch_type == input$selected_pitch_type, ]
+    # }
+    if (!is.null(input$selected_pitch_type) && input$tag_choice == "auto_pitch_type" && input$selected_pitch_type != "All") {
+      filtered_data <- filtered_data[filtered_data$auto_pitch_type == input$selected_pitch_type, ]
+    } else if (!is.null(input$selected_pitch_type) && input$tag_choice == "tagged_pitch_type" && input$selected_pitch_type != "All") {
+      filtered_data <- filtered_data[filtered_data$tagged_pitch_type == input$selected_pitch_type, ]
+    }
     build_heatmap(filtered_data)
   })
   
@@ -306,8 +344,8 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       # Generate the PDF
-      pdf_path <- get_blank_pdf(pitch_data(), selected_pitcher()$player_name, input$date_range[1],input$date_range[2])
-      
+      pdf_path <- get_pdf_working(pitch_data(), selected_pitcher()$player_name, input$date_range[1],input$date_range[2])
+      #pdf_path <- get_pdf(pitch_data(), selected_pitcher()$player_name, input$date_range[1],input$date_range[2], input$tag_choice)
       # Copy it to the file path that downloadHandler expects
       file.copy(pdf_path, file)
     },
@@ -318,7 +356,8 @@ server <- function(input, output, session) {
   
   # Render the data table
   output$pitchTable <- renderDT({
-    df <- get_pitch_type_percentages(pitch_data())
+    # df <- get_pitch_type_percentages(pitch_data())
+    df <- get_pitch_type_percentages(pitch_data(), input$tag_choice)
     datatable(df, options = list(pageLength = 12, scrollX = TRUE))  # Display the table
   })
 }

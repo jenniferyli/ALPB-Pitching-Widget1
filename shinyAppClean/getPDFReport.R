@@ -66,8 +66,8 @@ library(rmarkdown)
 library(ggplot2)
 library(patchwork)
 
-# Function to generate a blank PDF
-get_blank_pdf <- function(df, name, date1, date2) {
+# Function to generate a  PDF
+get_pdf_working <- function(df, name, date1, date2) {
   # Validate data first
   if (is.null(df) || nrow(df) == 0) {
     warning("No data available for PDF generation")
@@ -92,7 +92,7 @@ get_blank_pdf <- function(df, name, date1, date2) {
       legend.text = element_text(size = 6)
     )
   
-  splitDF <- get_pitch_type_percentages(df)
+  splitDF <- get_pitch_type_percentages(df, "auto_pitch_type")
   
   rmarkdown::render(
     input = file.path(getwd(), "PDFReportFormat.Rmd"),
@@ -108,3 +108,4 @@ get_blank_pdf <- function(df, name, date1, date2) {
   
   return(output_path)
 }
+

@@ -15,8 +15,8 @@ params:
 ---
 
 ```{r echo=FALSE, message=FALSE}
-cat("DEBUG: params$report_header =\n")
-str(params$report_header)
+# cat("DEBUG: params$report_header =\n")
+# str(params$report_header)
 
 # Create header strings safely
 header_name <- tryCatch(
@@ -43,3 +43,4 @@ params$combined_plot
 ```{r echo=FALSE, fig.height=2, fig.width=9, message=FALSE, warning=FALSE}
 knitr::kable(params$pitch_split, format="markdown", longtable = TRUE, caption = "Pitch Split Overview")
 ```
+
