@@ -181,7 +181,8 @@ ui <- fluidPage(
              )
            ),
            fluidRow(column(12,
-                           card_w_header("Pitch Type Percentages for Each Count",DTOutput("pitchTable"))))
+                           card_w_header("Pitch Type Percentages for Each Count",DTOutput("pitchTable"))
+                           ))
            
     ),
     column(1)
@@ -249,40 +250,92 @@ server <- function(input, output, session) {
     }
   })
   
+  # output$season_log <- renderTable({
+  #   data.frame(
+  #     W = sample(2:10, 1),
+  #     L = sample(2:10, 1),
+  #     ERA = round(runif(1, 3.00, 6.00), 2),
+  #     G = sample(20:25, 1),
+  #     IP = round(runif(1, 4.0, 9.0), 1),
+  #     H = sample(70:150, 1),
+  #     R = sample(45:55, 1),
+  #     ER = sample(35:45, 1),
+  #     HR = sample(15:30,1),
+  #     BB = sample(25:50,1),
+  #     WHIP = round(runif(1, 1.10, 1.50), 2)
+  #   )
+  # })
+  # 
+  # 
+  # output$game_log <- renderTable({
+  #       data.frame(
+  #         Game = 1:3,
+  #         Rslt = c("W", "W", "L"),
+  #         ERA = round(runif(3, 3.00, 6.00), 2),
+  #         G = sample(1:5, 3, replace = TRUE),
+  #         IP = round(runif(3, 4.0, 9.0), 1),
+  #         H = sample(3:10, 3, replace = TRUE),
+  #         R = sample(2:7, 3, replace = TRUE),
+  #         ER = sample(2:7, 3, replace = TRUE),
+  #         HR = sample(0:2, 3, replace = TRUE),
+  #         BB = sample(1:5, 3, replace = TRUE),
+  #         WHIP = round(runif(3, 1.10, 1.50), 2),
+  #         SO = sample(3:10, 3, replace = TRUE),
+  #         AVG = round(runif(3, 0.200, 0.350), 3)
+  #       )
+  #     })
+  # Season log: calculated from game log
   output$season_log <- renderTable({
+    # Convert innings from baseball notation to decimal
+    IP_vals <- c(7.0, 6.1, 5.2)
+    IP_decimal <- c(7.0, 6 + 1/3, 5 + 2/3)  # Keeping fractional innings as decimals
+    IP_total <- sum(IP_decimal)  # No need for rounding as we want a clean total
+    
+    H_total <- sum(c(6, 5, 8))
+    R_total <- sum(c(2, 3, 4))
+    ER_total <- sum(c(2, 2, 3))
+    HR_total <- sum(c(1, 0, 2))
+    BB_total <- sum(c(1, 2, 3))
+    
+    ERA <- round((ER_total * 9) / IP_total, 2)
+    WHIP <- round((H_total + BB_total) / IP_total, 2)
+    
+    # Whole numbers: Wins (W), Losses (L), Games (G)
+    W <- 2
+    L <- 1
+    G <- 3
+    
+    # Ensure H, R, ER, HR, BB are integers (no decimals)
     data.frame(
-      W = sample(2:10, 1),
-      L = sample(2:10, 1),
-      ERA = round(runif(1, 3.00, 6.00), 2),
-      G = sample(20:25, 1),
-      IP = round(runif(1, 4.0, 9.0), 1),
-      H = sample(70:150, 1),
-      R = sample(45:55, 1),
-      ER = sample(35:45, 1),
-      HR = sample(15:30,1),
-      BB = sample(25:50,1),
-      WHIP = round(runif(1, 1.10, 1.50), 2)
+      W = as.integer(W),
+      L = as.integer(L),
+      ERA = ERA,
+      G = as.integer(G),
+      IP = IP_total,  # Whole number of innings pitched (integer)
+      H = as.integer(H_total),  # Ensure Hits is an integer
+      R = as.integer(R_total),  # Ensure Runs is an integer
+      ER = as.integer(ER_total),  # Ensure Earned Runs is an integer
+      HR = as.integer(HR_total),  # Ensure Home Runs is an integer
+      BB = as.integer(BB_total),  # Ensure Walks is an integer
+      WHIP = WHIP
     )
   })
   
-  
+  # Game log: 3 realistic games
   output$game_log <- renderTable({
-        data.frame(
-          Game = 1:3,
-          Rslt = c("W", "W", "L"),
-          ERA = round(runif(3, 3.00, 6.00), 2),
-          G = sample(1:5, 3, replace = TRUE),
-          IP = round(runif(3, 4.0, 9.0), 1),
-          H = sample(3:10, 3, replace = TRUE),
-          R = sample(2:7, 3, replace = TRUE),
-          ER = sample(2:7, 3, replace = TRUE),
-          HR = sample(0:2, 3, replace = TRUE),
-          BB = sample(1:5, 3, replace = TRUE),
-          WHIP = round(runif(3, 1.10, 1.50), 2),
-          SO = sample(3:10, 3, replace = TRUE),
-          AVG = round(runif(3, 0.200, 0.350), 3)
-        )
-      })
+    data.frame(
+      Game = 1:3,
+      Rslt = c("W", "W", "L"),
+      ERA = round(c((2*9)/7.0, (2*9)/(6 + 1/3), (3*9)/(5 + 2/3)), 2),
+      IP = c(7.0, 6.1, 5.2),
+      H = as.integer(c(6, 5, 8)),  # Keep Hits as whole numbers
+      R = as.integer(c(2, 3, 4)),  # Keep Runs as whole numbers
+      ER = as.integer(c(2, 2, 3)),  # Keep Earned Runs as whole numbers
+      HR = as.integer(c(1, 0, 2)),  # Keep Home Runs as whole numbers
+      BB = as.integer(c(1, 2, 3)),  # Keep Walks as whole numbers
+      WHIP = round(c((6+1)/7.0, (5+2)/(6 + 1/3), (8+3)/(5 + 2/3)), 2)
+    )
+  })
   
  source('getGraphs.R')
   output$velPlot <- renderPlot({
@@ -344,8 +397,8 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       # Generate the PDF
-      pdf_path <- get_pdf_working(pitch_data(), selected_pitcher()$player_name, input$date_range[1],input$date_range[2])
-      #pdf_path <- get_pdf(pitch_data(), selected_pitcher()$player_name, input$date_range[1],input$date_range[2], input$tag_choice)
+      #pdf_path <- get_pdf_working(pitch_data(), selected_pitcher()$player_name, input$date_range[1],input$date_range[2])
+      pdf_path <- get_blank_pdf(pitch_data(), selected_pitcher()$player_name, input$date_range[1],input$date_range[2], input$tag_choice)
       # Copy it to the file path that downloadHandler expects
       file.copy(pdf_path, file)
     },
@@ -355,6 +408,7 @@ server <- function(input, output, session) {
   source("pitchSplit.R")
   
   # Render the data table
+  
   output$pitchTable <- renderDT({
     # df <- get_pitch_type_percentages(pitch_data())
     df <- get_pitch_type_percentages(pitch_data(), input$tag_choice)
