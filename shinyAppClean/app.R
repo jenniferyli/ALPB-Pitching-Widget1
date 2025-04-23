@@ -459,7 +459,11 @@ ui <- fluidPage(
            ),
            fluidRow(
              column(3, radioButtons("break_type", "Break Type:", choices = c("Vertical Break" = "induced_vert_break", "Horizontal Break" = "horz_break"))),
-             column(3, radioButtons("tag_choice", "Pitch Tagging Method:", choices = c("Machine Tagged" = "auto_pitch_type", "Human Tagged" = "tagged_pitch_type")))
+             column(3, radioButtons("tag_choice", "Pitch Tagging Method:", choices = c("Machine Tagged" = "auto_pitch_type", "Human Tagged" = "tagged_pitch_type")),
+                    ),
+             column(3,
+                    uiOutput("pitch_type_ui")
+             )
            ),
            fluidRow(
              column(6, card_w_header("Pitch map vs RH Batters", plotOutput("heatmap_right", height = "300px"))),
@@ -484,6 +488,24 @@ server <- function(input, output, session) {
   pitch_data <- reactive({
     req(input$selected_player)
     get_pitch_data(selected_pitcher()$player_id, input$date_range[1], input$date_range[2])
+  })
+  pitch_types <- reactive({
+    data <- pitch_data()
+    req(data)
+    #unique(na.omit(data$auto_pitch_type)) #Can change to user specification later
+    # Filter out "untagged" values
+    if (input$tag_choice == "auto_pitch_type") {
+      pitch_types <- unique(na.omit(data$auto_pitch_type))
+    } else {
+      pitch_types <- unique(na.omit(data$tagged_pitch_type))
+    }
+    pitch_types <- pitch_types[pitch_types != "Undefined"]
+  })
+  
+  output$pitch_type_ui <- renderUI({
+    req(pitch_types())
+    selectInput("selected_pitch_type", "Select Pitch Type:",
+                choices = c("All", pitch_types()), selected = "All")
   })
   
   output$scatter_header <- renderUI({
@@ -525,20 +547,50 @@ server <- function(input, output, session) {
     build_graph(df, "horz_break", "induced_vert_break", input$tag_choice)
   })
   
+  # output$heatmap_right <- renderPlot({
+  #   df <- pitch_data()
+  #   req(!is.null(df), nrow(df) > 0)
+  #   filtered <- df[df$batter_side == "Right", ]
+  #   req(nrow(filtered) > 0)
+  #   build_heatmap(filtered)
+  # })
+  # 
+  # output$heatmap_left <- renderPlot({
+  #   df <- pitch_data()
+  #   req(!is.null(df), nrow(df) > 0)
+  #   filtered <- df[df$batter_side == "Left", ]
+  #   req(nrow(filtered) > 0)
+  #   build_heatmap(filtered)
+  # })
+  
   output$heatmap_right <- renderPlot({
-    df <- pitch_data()
-    req(!is.null(df), nrow(df) > 0)
-    filtered <- df[df$batter_side == "Right", ]
-    req(nrow(filtered) > 0)
-    build_heatmap(filtered)
+    data <- pitch_data()
+    req(data)
+    filtered_data <- data[data$batter_side == "Right", ]
+    # if (!is.null(input$selected_pitch_type) && input$selected_pitch_type != "All") {
+    #   filtered_data <- filtered_data[filtered_data$auto_pitch_type == input$selected_pitch_type, ]
+    # }
+    if (!is.null(input$selected_pitch_type) && input$tag_choice == "auto_pitch_type" && input$selected_pitch_type != "All") {
+      filtered_data <- filtered_data[filtered_data$auto_pitch_type == input$selected_pitch_type, ]
+    } else if (!is.null(input$selected_pitch_type) && input$tag_choice == "tagged_pitch_type" && input$selected_pitch_type != "All") {
+      filtered_data <- filtered_data[filtered_data$tagged_pitch_type == input$selected_pitch_type, ]
+    }
+    build_heatmap(filtered_data)
   })
   
   output$heatmap_left <- renderPlot({
-    df <- pitch_data()
-    req(!is.null(df), nrow(df) > 0)
-    filtered <- df[df$batter_side == "Left", ]
-    req(nrow(filtered) > 0)
-    build_heatmap(filtered)
+    data <- pitch_data()
+    req(data)
+    filtered_data <- data[data$batter_side == "Left", ]
+    # if (!is.null(input$selected_pitch_type) && input$selected_pitch_type != "All") {
+    #   filtered_data <- filtered_data[filtered_data$auto_pitch_type == input$selected_pitch_type, ]
+    # }
+    if (!is.null(input$selected_pitch_type) && input$tag_choice == "auto_pitch_type" && input$selected_pitch_type != "All") {
+      filtered_data <- filtered_data[filtered_data$auto_pitch_type == input$selected_pitch_type, ]
+    } else if (!is.null(input$selected_pitch_type) && input$tag_choice == "tagged_pitch_type" && input$selected_pitch_type != "All") {
+      filtered_data <- filtered_data[filtered_data$tagged_pitch_type == input$selected_pitch_type, ]
+    }
+    build_heatmap(filtered_data)
   })
   
   output$download_pdf <- downloadHandler(
@@ -560,7 +612,7 @@ server <- function(input, output, session) {
       date1 <- as.character(input$date_range[1])
       date2 <- as.character(input$date_range[2])
       
-      pdf_path <- get_blank_pdf(df, name, date1, date2)
+      pdf_path <- get_pdf_working(df, name, date1, date2)
       
       if (!is.null(pdf_path) && file.exists(pdf_path)) {
         file.copy(pdf_path, file)
@@ -574,7 +626,7 @@ server <- function(input, output, session) {
   output$pitchTable <- renderDT({
     df <- pitch_data()
     req(!is.null(df), nrow(df) > 0)
-    datatable(get_pitch_type_percentages(df), options = list(pageLength = 12, scrollX = TRUE))
+    datatable(get_pitch_type_percentages(df, input$tag_choice), options = list(pageLength = 12, scrollX = TRUE))
   })
 }
 
