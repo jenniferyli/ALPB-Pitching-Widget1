@@ -2,6 +2,8 @@ library(dplyr)
 library(tidyr)
 library(tibble)
 library(ggplot2)
+library(cowplot)
+
 
 # get_pitch_type_percentages <- function(pitch_data) {
 #   pitch_data <- pitch_data %>%

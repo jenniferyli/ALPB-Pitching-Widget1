@@ -2,11 +2,39 @@
 library(ggplot2)
 library(MASS)
 library(dplyr)
+library(cowplot)
 
-# Function to create a heatmap for hard-hit balls (ExitSpeed > 95)
+
+build_heatmap_right <- function(filtered_df) {
+  filtered_data <- filtered_df[filtered_df$batter_side == "Right", ]
+  build_heatmap(filtered_data)
+}
+
+build_heatmap_left <- function(filtered_df) {
+  filtered_data <- filtered_df[filtered_df$batter_side == "Left", ]
+  build_heatmap(filtered_data)
+}
+
+build_all_three <- function(filtered_df, pitch_name) {
+  # combined <- list()
+  # combined["All"] <- build_heatmap(filtered_df)
+  # combined["Right"] <- build_heatmap_right(filtered_df)
+  # combined["Left"] <- build_heatmap_left(filtered_df)
+  new_heatmap_list <- plot_grid( build_heatmap(filtered_df), build_heatmap_right(filtered_df), build_heatmap_left(filtered_df), 
+                                 #labels = c(paste(pitch_name, "Heatmap vs All Batters"), paste(pitch_name, "Heatmap vs RHB"), paste(pitch_name, "Heatmap vs LHB")),
+                                 labels = c(paste(pitch_name, "vs All Batters"), paste(pitch_name, "vs RHB"), paste(pitch_name, "vs LHB")), 
+                                 ncol = 3, align = "hv",
+                                 axis = "tblr")
+  return(new_heatmap_list)
+}
+
 build_heatmap <- function(filtered_df) {
   
   # Check if there is data to plot, otherwise return a blank strike zone
+  filtered_df <- filtered_df %>%
+    filter(!is.na(plate_loc_side), !is.na(plate_loc_height), 
+           is.finite(plate_loc_side), is.finite(plate_loc_height))
+  
   if (nrow(filtered_df) == 0) {
     heatmap_viz <- ggplot() +
       coord_equal(xlim = c((-16/12), (16/12)), ylim = c(1, 4)) +
@@ -27,15 +55,13 @@ build_heatmap <- function(filtered_df) {
   }
   
   # Filter out rows where plate_loc_side or plate_loc_height is NA or infinite
-  filtered_df <- filtered_df %>%
-    filter(!is.na(plate_loc_side), !is.na(plate_loc_height), 
-           is.finite(plate_loc_side), is.finite(plate_loc_height))
   
-  # Check if the data is empty after filtering
-  if (nrow(filtered_df) == 0) {
-    return(ggplot() + 
-             labs(title = "No valid data to plot"))
-  }
+  
+  # # Check if the data is empty after filtering
+  # if (nrow(filtered_df) == 0) {
+  #   return(ggplot() + 
+  #            labs(title = "No valid data to plot"))
+  # }
   
   # Define a grid over the entire plot range
   x_grid <- seq(-1.5, 1.5, length.out = 100)
