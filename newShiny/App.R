@@ -18,7 +18,7 @@ source("getALPBPitches.R")
 card_w_header <- function(title, body) {
   div(class = "card",
       div(class = "card-header bg-info text-white text-center font-weight-bold",
-          style = "padding-top: 3px; padding-bottom: 3px;",
+          style = "padding-top: 5px; padding-bottom: 5px;",
           title),
       div(class = "card-body d-flex justify-content-center align-items-center",
           div(style = "text-align: center; width: 100%;", body)
@@ -53,7 +53,7 @@ ui <- fluidPage(
               
              #display season stats
              column(6,
-                    card_w_header("Pitcher Information", tableOutput("player_info"))
+                    card_w_header("General Info", tableOutput(""))
              ), 
              
              #download pdf btn
