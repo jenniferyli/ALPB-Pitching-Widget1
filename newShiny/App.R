@@ -6,13 +6,13 @@ library(rsconnect)
 library(ggplot2)
 library(tidyr)
 
-# === Load data and functions ===
+# source files
 source("getPointstreakPlayers.R")
 source("getALPBdata.R")
 source("getSeasonStats.R") 
 source("getALPBPitches.R") 
 
-# UI Card Helper
+# ui card helper
 card_w_header <- function(title, body) {
   div(class = "card",
       div(class = "card-header bg-info text-white text-center font-weight-bold",
@@ -24,11 +24,11 @@ card_w_header <- function(title, body) {
   )
 }
 
-# Create full name for dropdown
+# dropdown
 pitchers_df <- pitchers_df %>%
   mutate(full_name = paste(fname, lname))
 
-# === Shiny App UI ===
+# shiny ui
 
 ui <- fluidPage(
   fluidRow(
@@ -45,16 +45,15 @@ ui <- fluidPage(
              ), 
              
              column(2,
-                    #card_w_header("Export as PDF", actionButton("createPDF", "Generate!", class = "btn btn-primary btn-primary bg-info"))
                     downloadButton("download_pdf", "Download PDF")
              )
            ),
            
            fluidRow(
              column(4,
-                    div(style = "margin-bottom: 20px;",  # ⬅️ adds space below the card
+                    div(style = "margin-bottom: 20px;",  # 
                         card_w_header("Pitcher Information",
-                                      div(style = "text-align: left;", uiOutput("player_info_placeholder"))  # ⬅️ right-align the content
+                                      div(style = "text-align: left;", uiOutput("player_info_placeholder"))  # 
                         )
                     )
              ),
@@ -130,59 +129,14 @@ ui <- fluidPage(
   )
 )
 
-# ui <- fluidPage(
-#   titlePanel("ALPB Pitcher Lookup"),
-#   
-#   sidebarLayout(
-#     sidebarPanel(
-#       selectInput("selected_player", "Choose a Pitcher:", choices = pitchers_df$full_name)
-#     ),
-#     
-#     mainPanel(
-#       h4("Pointstreak Data:"),
-#       tableOutput("player_info"),
-#       
-#       h4("ALPB Data:"),
-#       verbatimTextOutput("alpb_info"),
-#       
-#       h4("Pointstreak playerlinkid:"),
-#       verbatimTextOutput("playerlink_output"),
-#       
-#       # ✅ NEW: Season Stats Table
-#       h4("Pointstreak Season Pitching Stats"),
-#       tableOutput("season_stats_output"),
-#       
-#       # ✅ NEW: ALPB Pitches Table
-#       h4("ALPB Pitch-by-Pitch Data"),
-#       tableOutput("alpb_pitch_data")
-#     )
-#   )
-# )
-
-# === Server logic ===
+# server
 server <- function(input, output) {
   # Pointstreak player row
   selected_player_row <- reactive({
     pitchers_df %>%
       filter(full_name == input$selected_player)
   })
-  
-  # selected_player_row <- reactive({
-  #   req(input$selected_player)  # Ensure a player is selected
-  #   
-  #   # Filter the pitchers_df by the selected player's full name
-  #   player_row <- pitchers_df %>%
-  #     filter(full_name == input$selected_player)
-  #   
-  #   # Check if the player was found and handle the case of an empty result
-  #   if (nrow(player_row) == 0) {
-  #     return(NULL)  # No player found
-  #   }
-  #   
-  #   return(player_row)  # Return the filtered data frame
-  # })
-  
-  
+
   # Store ALPB player ID reactively
   alpb_player_id <- reactiveVal(NULL)
   
@@ -235,20 +189,6 @@ server <- function(input, output) {
   })
   
   output$player_info_placeholder <- renderUI({
-    # player <- selected_pitcher()
-    # if (nrow(player) > 0) {
-    #   tagList(
-    #     h4(HTML(player$player_name)),
-    #     div(HTML(paste("<b>Player ID:</b>", player$player_id))),
-    #     div(HTML(paste("<b>Team Name:</b>", player$team_name))),
-    #     div(HTML(paste("<b>Pitching Handedness:</b>", player$player_pitching_handedness))),
-    #     div(HTML("<b>Age:</b> Pointstreak TBD")),
-    #     div(HTML("<b>Height:</b> Pointstreak TBD")),
-    #     div(HTML("<b>Weight:</b> Pointstreak TBD"))
-    #   )
-    # } else {
-    #   "No data available"
-    # }
     div(HTML("<b>Weight:</b> Pointstreak TBD"))
   })
   
@@ -279,12 +219,12 @@ server <- function(input, output) {
       L = as.integer(L),
       ERA = ERA,
       G = as.integer(G),
-      IP = IP_total,  # Whole number of innings pitched (integer)
-      H = as.integer(H_total),  # Ensure Hits is an integer
-      R = as.integer(R_total),  # Ensure Runs is an integer
-      ER = as.integer(ER_total),  # Ensure Earned Runs is an integer
-      HR = as.integer(HR_total),  # Ensure Home Runs is an integer
-      BB = as.integer(BB_total),  # Ensure Walks is an integer
+      IP = IP_total,  
+      H = as.integer(H_total),  
+      R = as.integer(R_total), 
+      ER = as.integer(ER_total), 
+      HR = as.integer(HR_total),  
+      BB = as.integer(BB_total), 
       WHIP = WHIP
     )
   })
@@ -314,19 +254,6 @@ server <- function(input, output) {
     build_graph(pitch_data(), "horz_break", "induced_vert_break", input$tag_choice)
   })
   source('getHeatmap.R')
-  
-  #heatmaps
-  
-  # heatmap_plots <- reactive({
-  #   data <- pitch_data()
-  #   req(data)
-  #   build_heatmap(data)
-  # })
-  # 
-  # 
-  # output$heatmaps <- renderPlot({
-  #   heatmap_plots()
-  # })
   
   output$heatmap_right <- renderPlot({
     data <- pitch_data()
@@ -388,18 +315,6 @@ server <- function(input, output) {
     req(selected_player_row())
     selected_player_row() %>% dplyr::select(-full_name)
   })
-  # output$player_info <- renderTable({
-  #   player_row <- selected_player_row()
-  #   
-  #   # If no player row is selected (i.e., the result is NULL), return an empty table
-  #   if (is.null(player_row)) {
-  #     return(data.frame())  # Return an empty data frame
-  #   }
-  #   
-  #   # If the player row exists, remove the 'full_name' column and display the data
-  #   player_row %>%
-  #     select(-full_name)  # Remove 'full_name' column from the table
-  # })
 
   # Show ALPB info
   output$alpb_info <- renderPrint({
@@ -435,7 +350,6 @@ server <- function(input, output) {
 
     stats
   })
-  # 
   # 
   output$alpb_pitch_data <- renderTable({
     req(alpb_player_id())
