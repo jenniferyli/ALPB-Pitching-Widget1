@@ -228,7 +228,7 @@ server <- function(input, output) {
   })
   
   pitch_data <- reactive({
-    req(alpb_player_id())  # stops here if NULL
+    # req(alpb_player_id())  # stops here if NULL
     get_alpb_pitches_by_pitcher(alpb_player_id())
     # get_alpb_pitches_by_pitcher(NULL)
   })
@@ -345,7 +345,12 @@ server <- function(input, output) {
     content = function(file) {
       # Generate the PDF
       #pdf_path <- get_pdf_working(pitch_data(), selected_pitcher()$player_name, input$date_range[1],input$date_range[2])
+      if (is.null(alpb_player_id())){
+        print("HI")
+        return(NULL)
+      } 
       pdf_path <- get_blank_pdf(pitch_data(), selected_pitcher(), input$tag_choice)
+      
       # Copy it to the file path that downloadHandler expects
       file.copy(pdf_path, file)
     },
@@ -358,6 +363,7 @@ server <- function(input, output) {
   
   output$pitchTable <- renderDT({
     # df <- get_pitch_type_percentages(pitch_data())
+    req(pitch_data())
     df <- get_pitch_type_percentages(pitch_data(), input$tag_choice)
     datatable(df, options = list(pageLength = 12, scrollX = TRUE))  # Display the table
   })
