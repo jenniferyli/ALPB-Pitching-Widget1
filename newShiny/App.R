@@ -41,7 +41,7 @@ ui <- fluidPage(
                     wellPanel(selectInput("selected_player", "Choose a Pitcher:", choices = pitchers_df$full_name))
              ),
              column(6,
-                    card_w_header("Season Stats", tableOutput("season_log"))
+                    card_w_header("Season Stats", tableOutput("season_log_fake"))
              ), 
              
              column(2,
@@ -54,7 +54,7 @@ ui <- fluidPage(
              column(4,
                     div(style = "margin-bottom: 20px;",  # ⬅️ adds space below the card
                         card_w_header("Pitcher Information",
-                                      div(style = "text-align: left;", uiOutput("player_info"))  # ⬅️ right-align the content
+                                      div(style = "text-align: left;", uiOutput("player_info_placeholder"))  # ⬅️ right-align the content
                         )
                     )
              ),
@@ -101,7 +101,29 @@ ui <- fluidPage(
            ),
            fluidRow(column(12,
                            card_w_header("Pitch Type Percentages for Each Count",DTOutput("pitchTable"))
-           ))
+           )),
+           fluidRow(
+             column(12,
+                    h4("Pointstreak Data:"),
+                    tableOutput("player_info"))
+             ),
+           fluidRow(
+             column(12,
+                    h4("ALPB Data:"),
+                    verbatimTextOutput("alpb_info"))),
+           fluidRow(
+             column(12,
+                    h4("Pointstreak playerlinkid:"),
+                    verbatimTextOutput("playerlink_output"))),
+           fluidRow(
+             column(12,
+                    h4("Pointstreak Season Pitching Stats"),
+                    tableOutput("season_stats_output"))),
+           fluidRow(
+             column(12,
+                    h4("ALPB Pitch-by-Pitch Data"),
+                    tableOutput("alpb_pitch_data"))
+           )
            
     ),
     column(1)
@@ -198,7 +220,7 @@ server <- function(input, output) {
                 choices = c("All", pitch_types()), selected = "All")
   })
   
-  output$player_info <- renderUI({
+  output$player_info_placeholder <- renderUI({
     # player <- selected_pitcher()
     # if (nrow(player) > 0) {
     #   tagList(
@@ -216,27 +238,27 @@ server <- function(input, output) {
     div(HTML("<b>Weight:</b> Pointstreak TBD"))
   })
   
-  # Season log: calculated from game log
-  output$season_log <- renderTable({
+  # # Season log: calculated from game log
+  output$season_log_fake <- renderTable({
     # Convert innings from baseball notation to decimal
     IP_vals <- c(7.0, 6.1, 5.2)
     IP_decimal <- c(7.0, 6 + 1/3, 5 + 2/3)  # Keeping fractional innings as decimals
     IP_total <- sum(IP_decimal)  # No need for rounding as we want a clean total
-    
+
     H_total <- sum(c(6, 5, 8))
     R_total <- sum(c(2, 3, 4))
     ER_total <- sum(c(2, 2, 3))
     HR_total <- sum(c(1, 0, 2))
     BB_total <- sum(c(1, 2, 3))
-    
+
     ERA <- round((ER_total * 9) / IP_total, 2)
     WHIP <- round((H_total + BB_total) / IP_total, 2)
-    
+
     # Whole numbers: Wins (W), Losses (L), Games (G)
     W <- 2
     L <- 1
     G <- 3
-    
+
     # Ensure H, R, ER, HR, BB are integers (no decimals)
     data.frame(
       W = as.integer(W),
@@ -252,7 +274,7 @@ server <- function(input, output) {
       WHIP = WHIP
     )
   })
-  
+  # 
   # Game log: 3 realistic games
   output$game_log <- renderTable({
     data.frame(
@@ -348,55 +370,55 @@ server <- function(input, output) {
   })
   
   # Show full player info
-  # output$player_info <- renderTable({
-  #   req(selected_player_row())
-  #   selected_player_row() %>% select(-full_name)
-  # })
-  # 
-  # # Show ALPB info
-  # output$alpb_info <- renderPrint({
-  #   req(selected_player_row())
-  #   selected <- selected_player_row()
-  #   result <- get_alpb_pitcher_info(selected$fname, selected$lname)
-  #   
-  #   if (is.na(result$player_id) || result$player_id == "data unavailable") {
-  #     alpb_player_id(NULL)
-  #     cat("\u26A0\uFE0F ALPB Data Unavailable")
-  #   } else {
-  #     alpb_player_id(result$player_id)
-  #     cat("Player ID: ", result$player_id, "\n")
-  #     cat("Pitching Handedness: ", result$pitching_hand)
-  #   }
-  # })
-  # 
-  # # Show Pointstreak playerlinkid
-  # output$playerlink_output <- renderPrint({
-  #   req(selected_player_row())
-  #   cat("playerlinkid:", selected_player_row()$playerlinkid)
-  # })
-  # 
+  output$player_info <- renderTable({
+    req(selected_player_row())
+    selected_player_row() %>% select(-full_name)
+  })
+
+  # Show ALPB info
+  output$alpb_info <- renderPrint({
+    req(selected_player_row())
+    selected <- selected_player_row()
+    result <- get_alpb_pitcher_info(selected$fname, selected$lname)
+
+    if (is.na(result$player_id) || result$player_id == "data unavailable") {
+      alpb_player_id(NULL)
+      cat("\u26A0\uFE0F ALPB Data Unavailable")
+    } else {
+      alpb_player_id(result$player_id)
+      cat("Player ID: ", result$player_id, "\n")
+      cat("Pitching Handedness: ", result$pitching_hand)
+    }
+  })
+
+  # Show Pointstreak playerlinkid
+  output$playerlink_output <- renderPrint({
+    req(selected_player_row())
+    cat("playerlinkid:", selected_player_row()$playerlinkid)
+  })
+
   # # ✅ Show season stats from getSeasonStats.R
-  # output$season_stats_output <- renderTable({
-  #   req(selected_player_row())
-  #   playerlinkid <- selected_player_row()$playerlinkid
-  #   stats <- get_pitching_stats_only(playerlinkid)
-  #   
-  #   if (is.null(stats)) {
-  #     return(tibble::tibble(message = "\u26A0\uFE0F No season stats found for this player."))
-  #   }
-  #   
-  #   stats
-  # })
+  output$season_stats_output <- renderTable({
+    req(selected_player_row())
+    playerlinkid <- selected_player_row()$playerlinkid
+    stats <- get_pitching_stats_only(playerlinkid)
+
+    if (is.null(stats)) {
+      return(tibble::tibble(message = "\u26A0\uFE0F No season stats found for this player."))
+    }
+
+    stats
+  })
   # 
   # 
-  # output$alpb_pitch_data <- renderTable({
-  #   req(alpb_player_id())
-  #   pitch_df <- get_alpb_pitches_by_pitcher(alpb_player_id())
-  #   if (is.null(pitch_df)) {
-  #     return(tibble::tibble(message = "\u26A0\uFE0F No pitch data found for this player."))
-  #   }
-  #   pitch_df
-  # })
+  output$alpb_pitch_data <- renderTable({
+    req(alpb_player_id())
+    pitch_df <- get_alpb_pitches_by_pitcher(alpb_player_id())
+    if (is.null(pitch_df)) {
+      return(tibble::tibble(message = "\u26A0\uFE0F No pitch data found for this player."))
+    }
+    pitch_df
+  })
 }
 
 shinyApp(ui = ui, server = server)
