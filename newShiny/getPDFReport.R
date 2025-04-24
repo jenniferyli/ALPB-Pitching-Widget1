@@ -132,7 +132,7 @@ get_all_pdf <- function(pointstreak, df, name, pitch_type) {
   
   df <- df %>%
     filter(!is.na(.data[[pitch_type]]), .data[[pitch_type]] != "Undefined")
-  source('getHeatMap.R')
+  source('getHeatmap.R')
   unique_values <- unique(df[[pitch_type]])
   heatmaps_list_rhp <- list()
 

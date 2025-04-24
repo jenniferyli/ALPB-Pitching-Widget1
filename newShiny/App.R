@@ -12,7 +12,7 @@ library(shinyjs)
 source("getPointstreakPlayers.R")
 source("getALPBdata.R")
 source("getSeasonStats.R") 
-source("getALPBPitches.R") 
+source("getALPBpitches.R") 
 
 # ui card helper
 card_w_header <- function(title, body) {
@@ -53,7 +53,7 @@ ui <- fluidPage(
               
              #display season stats
              column(6,
-                    card_w_header("General Info", tableOutput(""))
+                    card_w_header("General Info", tableOutput("total_stats_output"))
              ), 
              
              #download pdf btn
@@ -305,7 +305,7 @@ server <- function(input, output) {
   output$breakPlot <- renderPlot({
     build_graph(pitch_data(), "horz_break", "induced_vert_break", input$tag_choice)
   })
-  source('getHeatmap.R')
+  source('getHeatMap.R')
   
   output$heatmap_right <- renderPlot({
     data <- pitch_data()
@@ -409,6 +409,8 @@ server <- function(input, output) {
 
     stats
   })
+  
+ 
   # 
   # output$alpb_pitch_data <- renderTable({
   #   req(alpb_player_id())

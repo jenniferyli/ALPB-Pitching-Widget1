@@ -24,7 +24,10 @@ build_all_three <- function(filtered_df, pitch_name) {
                                  #labels = c(paste(pitch_name, "Heatmap vs All Batters"), paste(pitch_name, "Heatmap vs RHB"), paste(pitch_name, "Heatmap vs LHB")),
                                  labels = c(paste(pitch_name, "vs All Batters"), paste(pitch_name, "vs RHB"), paste(pitch_name, "vs LHB")), 
                                  ncol = 3, align = "hv",
-                                 axis = "tblr")
+                                 axis = "tblr", 
+                                 label_size = 15,  # Adjust the label size (optional)
+                                 label_fontface = "plain"  # Use plain (not bold)
+                                 )
   return(new_heatmap_list)
 }
 
