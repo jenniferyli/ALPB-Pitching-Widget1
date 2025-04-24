@@ -182,13 +182,7 @@ server <- function(input, output) {
     pitchers_df %>%
       filter(full_name == input$selected_player)
   })
-<<<<<<< HEAD
-  
-  
-  
-=======
 
->>>>>>> 70202d039813a006bb0c78e6c336c57c48ea089d
   # Store ALPB player ID reactively
   alpb_player_id <- reactiveVal(NULL)
   
@@ -204,7 +198,9 @@ server <- function(input, output) {
   })
   
   pitch_data <- reactive({
+    req(alpb_player_id())  # stops here if NULL
     get_alpb_pitches_by_pitcher(alpb_player_id())
+    # get_alpb_pitches_by_pitcher(NULL)
   })
   
   
@@ -271,7 +267,9 @@ server <- function(input, output) {
   
   source('getGraphs.R')
   output$velPlot <- renderPlot({
-    build_graph(pitch_data(), "rel_speed", input$break_type, input$tag_choice)
+    data <- pitch_data()
+    shiny::validate(shiny::need(!is.null(data) && nrow(data) > 0, "Need data"))
+    build_graph(data, "rel_speed", input$break_type, input$tag_choice)
   })
   
   output$breakPlot <- renderPlot({
@@ -339,11 +337,7 @@ server <- function(input, output) {
     req(selected_player_row())
     selected_player_row() %>% dplyr::select(-full_name)
   })
-<<<<<<< HEAD
- 
-=======
 
->>>>>>> 70202d039813a006bb0c78e6c336c57c48ea089d
   # Show ALPB info
   output$alpb_info <- renderPrint({
     req(selected_player_row())
