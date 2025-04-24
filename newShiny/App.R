@@ -5,6 +5,8 @@ library(DT)
 library(rsconnect)
 library(ggplot2)
 library(tidyr)
+library(shinyjs)
+
 
 # source files
 source("getPointstreakPlayers.R")
@@ -33,6 +35,10 @@ print(colnames(pitchers_df))
 # shiny ui
 
 ui <- fluidPage(
+  
+  useShinyjs(),
+  
+  
   fluidRow(
     column(1),
     column(10,
@@ -102,6 +108,7 @@ ui <- fluidPage(
            
            #third row
            fluidRow(
+             id = "alpbRow3",
              #vel plot
              column(6,
                     card_w_header(uiOutput("scatter_header"), plotOutput("velPlot", height = "300px"))
@@ -115,7 +122,9 @@ ui <- fluidPage(
            ),
            
            #4th row -- buttons
-           fluidRow(column(3,
+           fluidRow(
+             id = "alpbRow4",
+             column(3,
                            radioButtons("break_type", "Break Type:",
                                         choices = c("Vertical Break" = "induced_vert_break",
                                                     "Horizontal Break" = "horz_break")),
@@ -133,6 +142,7 @@ ui <- fluidPage(
            
            #5th row - heat maps
            fluidRow(
+             id = "alpbRow5",
              column(6,
                     card_w_header("Pitch map vs RH Batters", plotOutput("heatmap_right", height = "300px"))
              ),
@@ -143,32 +153,36 @@ ui <- fluidPage(
            ),
            
            #6th row -- pitch type 
-           fluidRow(column(12,
+           fluidRow(
+             id = "alpbRow6",
+             column(12,
                            card_w_header("Pitch Type Percentages for Each Count",DTOutput("pitchTable"))
-           )),
+           ))
+           
+           # ,
            
            # fluidRow(
            #   column(12,
            #          h4("Pointstreak Data:"),
            #          tableOutput("player_info"))
            #   ),
-           fluidRow(
-             column(12,
-                    h4("ALPB Data:"),
-                    verbatimTextOutput("alpb_info"))),
-           fluidRow(
-             column(12,
-                    h4("Pointstreak playerlinkid:"),
-                    verbatimTextOutput("playerlink_output"))),
+           # fluidRow(
+           #   column(12,
+           #          h4("ALPB Data:"),
+           #          verbatimTextOutput("alpb_info"))),
+           # fluidRow(
+           #   column(12,
+           #          h4("Pointstreak playerlinkid:"),
+           #          verbatimTextOutput("playerlink_output"))),
            # fluidRow(
            #   column(12,
            #          h4("Pointstreak Season Pitching Stats"),
            #          tableOutput("season_stats_output"))),
-           fluidRow(
-             column(12,
-                    h4("ALPB Pitch-by-Pitch Data"),
-                    tableOutput("alpb_pitch_data"))
-           )
+           # fluidRow(
+           #   column(12,
+           #          h4("ALPB Pitch-by-Pitch Data"),
+           #          tableOutput("alpb_pitch_data"))
+           # )
            
     ),
     column(1)
@@ -177,6 +191,22 @@ ui <- fluidPage(
 
 # server
 server <- function(input, output) {
+  
+  observe({
+    if (is.null(alpb_player_id())) {
+      shinyjs::hide("alpbRow3")
+      shinyjs::hide("alpbRow4")
+      shinyjs::hide("alpbRow5")
+      shinyjs::hide("alpbRow6")
+    } else {
+      shinyjs::show("alpbRow3")
+      shinyjs::show("alpbRow4")
+      shinyjs::show("alpbRow5")
+      shinyjs::show("alpbRow6")
+    }
+  })
+  
+  
   # Pointstreak player row
   selected_player_row <- reactive({
     pitchers_df %>%
@@ -339,26 +369,26 @@ server <- function(input, output) {
   })
 
   # Show ALPB info
-  output$alpb_info <- renderPrint({
-    req(selected_player_row())
-    selected <- selected_player_row()
-    result <- get_alpb_pitcher_info(selected$fname, selected$lname)
-
-    if (is.na(result$player_id) || result$player_id == "data unavailable") {
-      alpb_player_id(NULL)
-      cat("\u26A0\uFE0F ALPB Data Unavailable")
-    } else {
-      alpb_player_id(result$player_id)
-      cat("Player ID: ", result$player_id, "\n")
-      cat("Pitching Handedness: ", result$pitching_hand)
-    }
-  })
+  # output$alpb_info <- renderPrint({
+  #   req(selected_player_row())
+  #   selected <- selected_player_row()
+  #   result <- get_alpb_pitcher_info(selected$fname, selected$lname)
+  # 
+  #   if (is.na(result$player_id) || result$player_id == "data unavailable") {
+  #     alpb_player_id(NULL)
+  #     cat("\u26A0\uFE0F ALPB Data Unavailable")
+  #   } else {
+  #     alpb_player_id(result$player_id)
+  #     cat("Player ID: ", result$player_id, "\n")
+  #     cat("Pitching Handedness: ", result$pitching_hand)
+  #   }
+  # })
 
   # Show Pointstreak playerlinkid
-  output$playerlink_output <- renderPrint({
-    req(selected_player_row())
-    cat("playerlinkid:", selected_player_row()$playerlinkid)
-  })
+  # output$playerlink_output <- renderPrint({
+  #   req(selected_player_row())
+  #   cat("playerlinkid:", selected_player_row()$playerlinkid)
+  # })
 
   # # ✅ Show season stats from getSeasonStats.R
   output$season_stats_output <- renderTable({
@@ -373,14 +403,14 @@ server <- function(input, output) {
     stats
   })
   # 
-  output$alpb_pitch_data <- renderTable({
-    req(alpb_player_id())
-    pitch_df <- get_alpb_pitches_by_pitcher(alpb_player_id())
-    if (is.null(pitch_df)) {
-      return(tibble::tibble(message = "\u26A0\uFE0F No pitch data found for this player."))
-    }
-    pitch_df
-  })
+  # output$alpb_pitch_data <- renderTable({
+  #   req(alpb_player_id())
+  #   pitch_df <- get_alpb_pitches_by_pitcher(alpb_player_id())
+  #   if (is.null(pitch_df)) {
+  #     return(tibble::tibble(message = "\u26A0\uFE0F No pitch data found for this player."))
+  #   }
+  #   pitch_df
+  # })
   
   output$player_photo <- renderUI({
     req(selected_player_row())
