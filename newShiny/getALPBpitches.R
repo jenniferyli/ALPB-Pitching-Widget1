@@ -1,10 +1,14 @@
-
-
 library(httr)
 library(jsonlite)
 library(dplyr)
 
 get_alpb_pitches_by_pitcher <- function(player_id) {
+  
+  if (is.null(player_id) || player_id == "") {
+    return(NULL)
+  }
+  
+  
   url <- "https://1ywv9dczq5.execute-api.us-east-2.amazonaws.com/ALPBAPI/pitches"
   api_key <- "IuHgm3smV65kbC6lMlMLz80DOeEkGSiV6USoQhvZ"
   
@@ -17,11 +21,16 @@ get_alpb_pitches_by_pitcher <- function(player_id) {
   
   if (status_code(res) != 200) {
     warning("API request failed")
-    return(NULL)
+    return("ALPB data unavailable.")
   }
   
   content_text <- content(res, as = "text", encoding = "UTF-8")
   parsed <- fromJSON(content_text, simplifyDataFrame = FALSE)
+  
+  # Check if data is empty
+  if (is.null(parsed$data) || length(parsed$data) == 0) {
+    return("ALPB data unavailable.")
+  }
   
   # Determine total pages from meta
   total_pages <- parsed$meta$total
@@ -45,3 +54,4 @@ get_alpb_pitches_by_pitcher <- function(player_id) {
   df <- bind_rows(all_data)
   return(df)
 }
+
