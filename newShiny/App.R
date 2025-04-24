@@ -167,20 +167,6 @@ server <- function(input, output) {
       filter(full_name == input$selected_player)
   })
   
-  # selected_player_row <- reactive({
-  #   req(input$selected_player)  # Ensure a player is selected
-  #   
-  #   # Filter the pitchers_df by the selected player's full name
-  #   player_row <- pitchers_df %>%
-  #     filter(full_name == input$selected_player)
-  #   
-  #   # Check if the player was found and handle the case of an empty result
-  #   if (nrow(player_row) == 0) {
-  #     return(NULL)  # No player found
-  #   }
-  #   
-  #   return(player_row)  # Return the filtered data frame
-  # })
   
   
   # Store ALPB player ID reactively
@@ -388,19 +374,7 @@ server <- function(input, output) {
     req(selected_player_row())
     selected_player_row() %>% dplyr::select(-full_name)
   })
-  # output$player_info <- renderTable({
-  #   player_row <- selected_player_row()
-  #   
-  #   # If no player row is selected (i.e., the result is NULL), return an empty table
-  #   if (is.null(player_row)) {
-  #     return(data.frame())  # Return an empty data frame
-  #   }
-  #   
-  #   # If the player row exists, remove the 'full_name' column and display the data
-  #   player_row %>%
-  #     select(-full_name)  # Remove 'full_name' column from the table
-  # })
-
+ 
   # Show ALPB info
   output$alpb_info <- renderPrint({
     req(selected_player_row())
