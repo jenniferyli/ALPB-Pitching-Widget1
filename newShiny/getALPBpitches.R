@@ -1,36 +1,47 @@
+
+
 library(httr)
 library(jsonlite)
 library(dplyr)
 
 get_alpb_pitches_by_pitcher <- function(player_id) {
-  # ALPB API key and endpoint
-  alpb_api_key <- "IuHgm3smV65kbC6lMlMLz80DOeEkGSiV6USoQhvZ"
-  base_url <- "https://1ywv9dczq5.execute-api.us-east-2.amazonaws.com/ALPBAPI/pitches"
+  url <- "https://1ywv9dczq5.execute-api.us-east-2.amazonaws.com/ALPBAPI/pitches"
+  api_key <- "IuHgm3smV65kbC6lMlMLz80DOeEkGSiV6USoQhvZ"
   
-  # Make GET request with pitcher_id as query param
+  # First request to get total number of pages
   res <- GET(
-    url = base_url,
-    query = list(pitcher_id = player_id),
-    add_headers(`x-api-key` = alpb_api_key)
+    url,
+    query = list(pitcher_id = player_id, page = 1),
+    add_headers(`x-api-key` = api_key)
   )
   
-  # Check response status
   if (status_code(res) != 200) {
-    cat("❌ API request failed with status:", status_code(res), "\n")
+    warning("API request failed")
     return(NULL)
   }
   
-  # Parse and extract pitch data
-  json_data <- content(res, as = "text", encoding = "UTF-8")
-  parsed <- fromJSON(json_data, flatten = TRUE)
+  content_text <- content(res, as = "text", encoding = "UTF-8")
+  parsed <- fromJSON(content_text, simplifyDataFrame = FALSE)
   
-  if (is.null(parsed$data) || length(parsed$data) == 0) {
-    cat("⚠️ No pitch data found for pitcher_id:", player_id, "\n")
-    return(NULL)
+  # Determine total pages from meta
+  total_pages <- parsed$meta$total
+  all_data <- parsed$data
+  
+  # Loop through remaining pages
+  if (total_pages > 1) {
+    for (page in 2:total_pages) {
+      res_page <- GET(
+        url,
+        query = list(pitcher_id = player_id, page = page),
+        add_headers(`x-api-key` = api_key)
+      )
+      if (status_code(res_page) == 200) {
+        page_data <- fromJSON(content(res_page, as = "text", encoding = "UTF-8"), simplifyDataFrame = FALSE)
+        all_data <- c(all_data, page_data$data)
+      }
+    }
   }
   
-  pitch_df <- as_tibble(parsed$data)
-  print(pitch_df)
-  return(pitch_df)
+  df <- bind_rows(all_data)
+  return(df)
 }
-
