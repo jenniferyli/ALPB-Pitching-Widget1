@@ -47,64 +47,86 @@ ui <- fluidPage(
            #first row
              #pitcher dropdown
            fluidRow(
+
              column(4,
                     wellPanel(selectInput("selected_player", "Choose a Pitcher:", choices = pitchers_df$full_name))
              ),
+<<<<<<< HEAD
               
              #display season stats
              column(6,
                     card_w_header("General Info", tableOutput("total_stats_output"))
              ), 
              
+=======
+>>>>>>> 3a41b5248aaa9757a37c5aef7abc3530a8114104
              #download pdf btn
+             column(6,
+                    
+             ),
              column(2,
                     downloadButton("download_pdf", "Download PDF")
              )
+
            ),
-           
+
            #second row
            fluidRow(
-             #display pitcher_info
-             # column(4,
-             #        div(style = "margin-bottom: 20px;",  #
-             #            card_w_header("Pitcher Information",
-             #                          div(style = "text-align: left;", uiOutput("player_info_placeholder"))  #
-             #            )
-             #        )
-             # ),
-             
              column(4,
                     div(style = "margin-bottom: 20px",
                         card_w_header("Pitcher Information",
-                                      div(style = "text-align: left; margin-top: 2vh;",  
+                                      div(style = "text-align: left; margin-top: 2vh;",
                                           fluidRow(
                                             column(6, uiOutput("player_photo")),
-                                            
+
                                             column(6, uiOutput("player_info_placeholder"))
                                           )
                                       )
                         )
                     )
              ),
-             
-             
-             
-             
-             
-             
-             # column(4,
-             #        div(style = "margin-bottom: 20px;",
-             #            card_w_header("Pitcher Information",
-             #                          div(style = "text-align: center;", uiOutput("player_photo"))
-             #            )
-             #        )
-             # ),
-             
-             #display recent game logs
              column(8,
                     card_w_header("Season Stats", tableOutput("season_stats_output"))
              )
            ),
+           
+           # single fluidRow layout
+           # fluidRow(
+           #   
+           #   # Left column
+           #   column(4,
+           #          # First nested row: dropdown and download button
+           #          fluidRow(
+           #            column(8,
+           #                   wellPanel(selectInput("selected_player", "Choose a Pitcher:", choices = pitchers_df$full_name))
+           #            ),
+           #            column(4,
+           #                   downloadButton("download_pdf", "Download PDF")
+           #            )
+           #          ),
+           #          # Second nested row: pitcher info
+           #          fluidRow(
+           #            column(12,
+           #                   div(style = "margin-top: 20px;",
+           #                       card_w_header("Pitcher Information",
+           #                                     div(style = "text-align: left; margin-top: 2vh;",  
+           #                                         fluidRow(
+           #                                           column(6, uiOutput("player_photo")),
+           #                                           column(6, uiOutput("player_info_placeholder"))
+           #                                         )
+           #                                     )
+           #                       )
+           #                   )
+           #            )
+           #          )
+           #   ),
+           #   
+           #   # Right column: season stats
+           #   column(8,
+           #          card_w_header("Season Stats", tableOutput("season_stats_output"))
+           #   )
+           # ),
+           
            
            #third row
            fluidRow(
