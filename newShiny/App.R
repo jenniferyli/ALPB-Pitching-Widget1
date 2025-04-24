@@ -6,13 +6,13 @@ library(rsconnect)
 library(ggplot2)
 library(tidyr)
 
-# === Load data and functions ===
+# source files
 source("getPointstreakPlayers.R")
 source("getALPBdata.R")
 source("getSeasonStats.R") 
 source("getALPBPitches.R") 
 
-# UI Card Helper
+# ui card helper
 card_w_header <- function(title, body) {
   div(class = "card",
       div(class = "card-header bg-info text-white text-center font-weight-bold",
@@ -24,11 +24,13 @@ card_w_header <- function(title, body) {
   )
 }
 
-# Create full name for dropdown
+# dropdown
 pitchers_df <- pitchers_df %>%
   mutate(full_name = paste(fname, lname))
 
-# === Shiny App UI ===
+print(colnames(pitchers_df))
+
+# shiny ui
 
 ui <- fluidPage(
   fluidRow(
@@ -36,45 +38,83 @@ ui <- fluidPage(
     column(10,
            div(style = "text-align: center;", h1("ALPB Pitchers")),
            
+           #first row
+             #pitcher dropdown
            fluidRow(
              column(4,
                     wellPanel(selectInput("selected_player", "Choose a Pitcher:", choices = pitchers_df$full_name))
              ),
+              
+             #display season stats
              column(6,
-                    card_w_header("Season Stats", tableOutput("season_log_fake"))
+                    card_w_header("Pitcher Information", tableOutput("player_info"))
              ), 
              
+             #download pdf btn
              column(2,
-                    #card_w_header("Export as PDF", actionButton("createPDF", "Generate!", class = "btn btn-primary btn-primary bg-info"))
                     downloadButton("download_pdf", "Download PDF")
              )
            ),
            
+           #second row
            fluidRow(
+             #display pitcher_info
+             # column(4,
+             #        div(style = "margin-bottom: 20px;",  #
+             #            card_w_header("Pitcher Information",
+             #                          div(style = "text-align: left;", uiOutput("player_info_placeholder"))  #
+             #            )
+             #        )
+             # ),
+             
              column(4,
-                    div(style = "margin-bottom: 20px;",  # ⬅️ adds space below the card
+                    div(style = "margin-bottom: 20px",
                         card_w_header("Pitcher Information",
-                                      div(style = "text-align: left;", uiOutput("player_info_placeholder"))  # ⬅️ right-align the content
+                                      div(style = "text-align: left; margin-top: 2vh;",  
+                                          fluidRow(
+                                            column(6, uiOutput("player_photo")),
+                                            
+                                            column(6, uiOutput("player_info_placeholder"))
+                                          )
+                                      )
                         )
                     )
              ),
              
              
+             
+             
+             
+             
+             # column(4,
+             #        div(style = "margin-bottom: 20px;",
+             #            card_w_header("Pitcher Information",
+             #                          div(style = "text-align: center;", uiOutput("player_photo"))
+             #            )
+             #        )
+             # ),
+             
+             #display recent game logs
              column(8,
-                    card_w_header("Game Log", tableOutput("game_log"))
+                    card_w_header("Season Stats", tableOutput("season_stats_output"))
              )
            ),
            
+           #third row
            fluidRow(
+             #vel plot
              column(6,
                     card_w_header(uiOutput("scatter_header"), plotOutput("velPlot", height = "300px"))
              ),
              
+             #break graph
              column(6,
                     card_w_header("Induced Vertical Break vs Horizontal Break", plotOutput("breakPlot", height = "300px"))
                     # card_w_header("Strike Zone", plotOutput("heatmaps", height = "300px"))
              )
            ),
+           
+           #4th row -- buttons
            fluidRow(column(3,
                            radioButtons("break_type", "Break Type:",
                                         choices = c("Vertical Break" = "induced_vert_break",
@@ -90,6 +130,8 @@ ui <- fluidPage(
                   uiOutput("pitch_type_ui")
            )
            ),
+           
+           #5th row - heat maps
            fluidRow(
              column(6,
                     card_w_header("Pitch map vs RH Batters", plotOutput("heatmap_right", height = "300px"))
@@ -99,14 +141,17 @@ ui <- fluidPage(
                     card_w_header("Pitch map vs LH Batters", plotOutput("heatmap_left", height = "300px"))
              )
            ),
+           
+           #6th row -- pitch type 
            fluidRow(column(12,
                            card_w_header("Pitch Type Percentages for Each Count",DTOutput("pitchTable"))
            )),
-           fluidRow(
-             column(12,
-                    h4("Pointstreak Data:"),
-                    tableOutput("player_info"))
-             ),
+           
+           # fluidRow(
+           #   column(12,
+           #          h4("Pointstreak Data:"),
+           #          tableOutput("player_info"))
+           #   ),
            fluidRow(
              column(12,
                     h4("ALPB Data:"),
@@ -115,10 +160,10 @@ ui <- fluidPage(
              column(12,
                     h4("Pointstreak playerlinkid:"),
                     verbatimTextOutput("playerlink_output"))),
-           fluidRow(
-             column(12,
-                    h4("Pointstreak Season Pitching Stats"),
-                    tableOutput("season_stats_output"))),
+           # fluidRow(
+           #   column(12,
+           #          h4("Pointstreak Season Pitching Stats"),
+           #          tableOutput("season_stats_output"))),
            fluidRow(
              column(12,
                     h4("ALPB Pitch-by-Pitch Data"),
@@ -130,45 +175,20 @@ ui <- fluidPage(
   )
 )
 
-# ui <- fluidPage(
-#   titlePanel("ALPB Pitcher Lookup"),
-#   
-#   sidebarLayout(
-#     sidebarPanel(
-#       selectInput("selected_player", "Choose a Pitcher:", choices = pitchers_df$full_name)
-#     ),
-#     
-#     mainPanel(
-#       h4("Pointstreak Data:"),
-#       tableOutput("player_info"),
-#       
-#       h4("ALPB Data:"),
-#       verbatimTextOutput("alpb_info"),
-#       
-#       h4("Pointstreak playerlinkid:"),
-#       verbatimTextOutput("playerlink_output"),
-#       
-#       # ✅ NEW: Season Stats Table
-#       h4("Pointstreak Season Pitching Stats"),
-#       tableOutput("season_stats_output"),
-#       
-#       # ✅ NEW: ALPB Pitches Table
-#       h4("ALPB Pitch-by-Pitch Data"),
-#       tableOutput("alpb_pitch_data")
-#     )
-#   )
-# )
-
-# === Server logic ===
+# server
 server <- function(input, output) {
   # Pointstreak player row
   selected_player_row <- reactive({
     pitchers_df %>%
       filter(full_name == input$selected_player)
   })
+<<<<<<< HEAD
   
   
   
+=======
+
+>>>>>>> 70202d039813a006bb0c78e6c336c57c48ea089d
   # Store ALPB player ID reactively
   alpb_player_id <- reactiveVal(NULL)
   
@@ -220,76 +240,34 @@ server <- function(input, output) {
                 choices = c("All", pitch_types()), selected = "All")
   })
   
+  # output$player_info_placeholder <- renderUI({
+  #   tagList(
+  #     div(HTML("<b>Weight:</b> Pointstreak TBD")),
+  #     div(HTML("<b>Height:</b> Pointstreak TBD")),
+  #     div(HTML("<b>Throws:</b> Pointstreak TBD")),
+  #     div(HTML("<b>Bats:</b> Pointstreak TBD"))
+  #   )
+  # })
+  
   output$player_info_placeholder <- renderUI({
-    # player <- selected_pitcher()
-    # if (nrow(player) > 0) {
-    #   tagList(
-    #     h4(HTML(player$player_name)),
-    #     div(HTML(paste("<b>Player ID:</b>", player$player_id))),
-    #     div(HTML(paste("<b>Team Name:</b>", player$team_name))),
-    #     div(HTML(paste("<b>Pitching Handedness:</b>", player$player_pitching_handedness))),
-    #     div(HTML("<b>Age:</b> Pointstreak TBD")),
-    #     div(HTML("<b>Height:</b> Pointstreak TBD")),
-    #     div(HTML("<b>Weight:</b> Pointstreak TBD"))
-    #   )
-    # } else {
-    #   "No data available"
-    # }
-    div(HTML("<b>Weight:</b> Pointstreak TBD"))
+    req(selected_player_row())  # Ensure there's a selection
+    player <- selected_player_row()
+    
+    tagList(
+      div(HTML(paste0("<b>Name:</b> ", player$full_name))),
+      div(HTML(paste0("<b>Team:</b> ", player$teamname))),
+      div(HTML(paste0("<b>Player ID:</b> ", player$playerid))),
+      div(HTML(paste0("<b>Hometown:</b> ", player$hometown))),
+      div(HTML(paste0("<b>Throws:</b> ", player$throws))),
+      div(HTML(paste0("<b>Weight:</b> ", player$weight))),
+      div(HTML(paste0("<b>Height:</b> ", player$height))),
+      div(HTML(paste0("<b>Bats:</b> ", player$bats))),
+      # div(HTML(paste0("<b>Photo:</b> ", player$photo)))
+    )
   })
   
-  # # Season log: calculated from game log
-  output$season_log_fake <- renderTable({
-    # Convert innings from baseball notation to decimal
-    IP_vals <- c(7.0, 6.1, 5.2)
-    IP_decimal <- c(7.0, 6 + 1/3, 5 + 2/3)  # Keeping fractional innings as decimals
-    IP_total <- sum(IP_decimal)  # No need for rounding as we want a clean total
-
-    H_total <- sum(c(6, 5, 8))
-    R_total <- sum(c(2, 3, 4))
-    ER_total <- sum(c(2, 2, 3))
-    HR_total <- sum(c(1, 0, 2))
-    BB_total <- sum(c(1, 2, 3))
-
-    ERA <- round((ER_total * 9) / IP_total, 2)
-    WHIP <- round((H_total + BB_total) / IP_total, 2)
-
-    # Whole numbers: Wins (W), Losses (L), Games (G)
-    W <- 2
-    L <- 1
-    G <- 3
-
-    # Ensure H, R, ER, HR, BB are integers (no decimals)
-    data.frame(
-      W = as.integer(W),
-      L = as.integer(L),
-      ERA = ERA,
-      G = as.integer(G),
-      IP = IP_total,  # Whole number of innings pitched (integer)
-      H = as.integer(H_total),  # Ensure Hits is an integer
-      R = as.integer(R_total),  # Ensure Runs is an integer
-      ER = as.integer(ER_total),  # Ensure Earned Runs is an integer
-      HR = as.integer(HR_total),  # Ensure Home Runs is an integer
-      BB = as.integer(BB_total),  # Ensure Walks is an integer
-      WHIP = WHIP
-    )
-  })
-  # 
-  # Game log: 3 realistic games
-  output$game_log <- renderTable({
-    data.frame(
-      Game = 1:3,
-      Rslt = c("W", "W", "L"),
-      ERA = round(c((2*9)/7.0, (2*9)/(6 + 1/3), (3*9)/(5 + 2/3)), 2),
-      IP = c(7.0, 6.1, 5.2),
-      H = as.integer(c(6, 5, 8)),  # Keep Hits as whole numbers
-      R = as.integer(c(2, 3, 4)),  # Keep Runs as whole numbers
-      ER = as.integer(c(2, 2, 3)),  # Keep Earned Runs as whole numbers
-      HR = as.integer(c(1, 0, 2)),  # Keep Home Runs as whole numbers
-      BB = as.integer(c(1, 2, 3)),  # Keep Walks as whole numbers
-      WHIP = round(c((6+1)/7.0, (5+2)/(6 + 1/3), (8+3)/(5 + 2/3)), 2)
-    )
-  })
+  
+  
   
   source('getGraphs.R')
   output$velPlot <- renderPlot({
@@ -300,19 +278,6 @@ server <- function(input, output) {
     build_graph(pitch_data(), "horz_break", "induced_vert_break", input$tag_choice)
   })
   source('getHeatmap.R')
-  
-  #heatmaps
-  
-  # heatmap_plots <- reactive({
-  #   data <- pitch_data()
-  #   req(data)
-  #   build_heatmap(data)
-  # })
-  # 
-  # 
-  # output$heatmaps <- renderPlot({
-  #   heatmap_plots()
-  # })
   
   output$heatmap_right <- renderPlot({
     data <- pitch_data()
@@ -374,7 +339,11 @@ server <- function(input, output) {
     req(selected_player_row())
     selected_player_row() %>% dplyr::select(-full_name)
   })
+<<<<<<< HEAD
  
+=======
+
+>>>>>>> 70202d039813a006bb0c78e6c336c57c48ea089d
   # Show ALPB info
   output$alpb_info <- renderPrint({
     req(selected_player_row())
@@ -404,12 +373,11 @@ server <- function(input, output) {
     stats <- get_pitching_stats_only(playerlinkid)
 
     if (is.null(stats)) {
-      return(tibble::tibble(message = "\u26A0\uFE0F No season stats found for this player."))
+      return(tibble::tibble(message = "No season stats found for this player."))
     }
 
     stats
   })
-  # 
   # 
   output$alpb_pitch_data <- renderTable({
     req(alpb_player_id())
@@ -419,6 +387,19 @@ server <- function(input, output) {
     }
     pitch_df
   })
+  
+  output$player_photo <- renderUI({
+    req(selected_player_row())
+    img_url <- selected_player_row()$photo
+    
+    if (!is.na(img_url) && nzchar(img_url)) {
+      tags$img(src = img_url, width = "100%", style = "border-radius: 8px;")
+    } else {
+      tags$p("⚠️ No photo available.")
+    }
+  })
+  
+  
 }
 
 shinyApp(ui = ui, server = server)
