@@ -14,9 +14,6 @@ geometry: margin = 0.25in
 date: "`r Sys.Date()`"
 params:
   report_header: report_header
-  combined_plot: combined_plot
-  pitch_split: pitch_split
-  heatmaps_row_rhp: heatmaps_row_rhp
   season_stats: season_stats
 ---
 
@@ -50,26 +47,4 @@ header_name <- tryCatch(
 knitr::kable(params$season_stats, format="markdown", longtable = TRUE, caption = "Season Stats")%>%
   kableExtra::kable_styling(latex_options = "striped")
 ```
-
-\section*{Pitch Usage by Count}
-
-```{r echo=FALSE, fig.height=2, fig.width=9, message=FALSE, warning=FALSE}
-knitr::kable(params$pitch_split, format="markdown", longtable = TRUE, caption = "Pitch Split Overview")%>%
-  kableExtra::kable_styling(latex_options = "striped")
-```
-
-\section*{Pitch Movement Graphs}
-```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=4}
-params$combined_plot
-```
-
-
-\section*{Pitching Heatmaps}
-```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=15, fig.height=5}
- for(i in seq_along(params$heatmaps_row_rhp)) {
-  print(params$heatmaps_row_rhp[[i]])  # This could be pheatmap or ggplot-based heatmaps
-}
-```
-
-
 

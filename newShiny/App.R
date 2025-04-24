@@ -344,12 +344,13 @@ server <- function(input, output) {
     },
     content = function(file) {
       # Generate the PDF
-      #pdf_path <- get_pdf_working(pitch_data(), selected_pitcher()$player_name, input$date_range[1],input$date_range[2])
+      pdf_path <- NULL
       if (is.null(alpb_player_id())){
-        print("HI")
-        return(NULL)
+        pdf_path<- get_no_ALPB_pdf(selected_player_row()$playerlinkid, selected_pitcher())
       } 
-      pdf_path <- get_blank_pdf(pitch_data(), selected_pitcher(), input$tag_choice)
+      else {
+        pdf_path <- get_all_pdf(selected_player_row()$playerlinkid, pitch_data(), selected_pitcher(), input$tag_choice)
+      }
       
       # Copy it to the file path that downloadHandler expects
       file.copy(pdf_path, file)
