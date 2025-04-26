@@ -1,0 +1,46 @@
+---
+output: pdf_document
+header-includes:
+  - \pagenumbering{gobble}
+  - \usepackage{multicol}
+  - \usepackage{graphicx}
+  - \usepackage{longtable}
+  - \graphicspath{ {.} }
+  - \usepackage{fancyhdr}        # Include fancyhdr for custom headers
+  - \pagestyle{fancy}           # Use fancy header style
+  - \fancyhf{}                  # Clear default header/footer
+  - \renewcommand{\headrulewidth}{0.5pt}  # Add a horizontal rule separating header and content
+geometry: margin = 0.25in
+date: "`r Sys.Date()`"
+params:
+  report_header: report_header
+---
+
+```{r echo=FALSE, message=FALSE}
+# cat("DEBUG: params$report_header =\n")
+# str(params$report_header)
+
+# Create header strings safely
+header_name <- tryCatch(
+  paste0(params$report_header[["name"]], " Pitching Report"),
+  error = function(e) "Unknown Player"
+)
+
+```
+
+
+
+\headheight 45pt
+\lhead{\textbf{`r header_name`}} 
+\pagenumbering{arabic}
+\rhead{\small\thepage}
+\headsep 2.0em
+\renewcommand{\baselinestretch}{1.25}
+
+\begin{center}
+  \Huge \textbf{`r header_name`}
+\end{center}
+
+\begin{center}
+  \normalsize \text{No data available}
+\end{center}

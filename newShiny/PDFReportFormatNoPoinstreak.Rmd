@@ -1,0 +1,68 @@
+---
+output: pdf_document
+header-includes:
+  - \pagenumbering{gobble}
+  - \usepackage{multicol}
+  - \usepackage{graphicx}
+  - \usepackage{longtable}
+  - \graphicspath{ {.} }
+  - \usepackage{fancyhdr}        # Include fancyhdr for custom headers
+  - \pagestyle{fancy}           # Use fancy header style
+  - \fancyhf{}                  # Clear default header/footer
+  - \renewcommand{\headrulewidth}{0.5pt}  # Add a horizontal rule separating header and content
+geometry: margin = 0.25in
+date: "`r Sys.Date()`"
+params:
+  report_header: report_header
+  combined_plot: combined_plot
+  pitch_split: pitch_split
+  heatmaps_row_rhp: heatmaps_row_rhp
+---
+
+```{r echo=FALSE, message=FALSE}
+# cat("DEBUG: params$report_header =\n")
+# str(params$report_header)
+
+# Create header strings safely
+header_name <- tryCatch(
+  paste0(params$report_header[["name"]], " Pitching Report"),
+  error = function(e) "Unknown Player"
+)
+
+```
+
+
+
+\headheight 45pt
+\lhead{\textbf{`r header_name`}} 
+\pagenumbering{arabic}
+\rhead{\small\thepage}
+\headsep 2.0em
+\renewcommand{\baselinestretch}{1.25}
+
+\begin{center}
+  \Huge \textbf{`r header_name`}
+\end{center}
+
+\section*{Pitch Usage by Count}
+
+```{r echo=FALSE, fig.height=2, fig.width=9, message=FALSE, warning=FALSE}
+knitr::kable(params$pitch_split, format="markdown", longtable = TRUE, caption = "Pitch Split Overview")%>%
+  kableExtra::kable_styling(latex_options = "striped")
+```
+
+\section*{Pitch Movement Graphs}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=4}
+params$combined_plot
+```
+
+
+\section*{Pitching Heatmaps}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=15, fig.height=5}
+ for(i in seq_along(params$heatmaps_row_rhp)) {
+  print(params$heatmaps_row_rhp[[i]])  # This could be pheatmap or ggplot-based heatmaps
+}
+```
+
+
+

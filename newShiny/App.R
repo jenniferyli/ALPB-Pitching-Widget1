@@ -51,15 +51,7 @@ ui <- fluidPage(
              column(4,
                     wellPanel(selectInput("selected_player", "Choose a Pitcher:", choices = pitchers_df$full_name))
              ),
-<<<<<<< HEAD
-              
-             #display season stats
-             column(6,
-                    card_w_header("General Info", tableOutput("total_stats_output"))
-             ), 
-             
-=======
->>>>>>> 3a41b5248aaa9757a37c5aef7abc3530a8114104
+
              #download pdf btn
              column(6,
                     
@@ -367,9 +359,16 @@ server <- function(input, output) {
     content = function(file) {
       # Generate the PDF
       pdf_path <- NULL
-      if (is.null(alpb_player_id())){
+      stats <- get_pitching_stats_only(selected_player_row()$playerlinkid)
+      if ((is.null(stats) || nrow(stats) == 0) && is.null(alpb_player_id())) {
+        pdf_path <- get_no_data_pdf(selected_pitcher())
+      }
+      else if (is.null(alpb_player_id())){
         pdf_path<- get_no_ALPB_pdf(selected_player_row()$playerlinkid, selected_pitcher())
-      } 
+      }
+      else if (is.null(stats) || nrow(stats) == 0){
+        pdf_path<- get_no_poinstreak_pdf(pitch_data(), selected_pitcher(), input$tag_choice)
+      }
       else {
         pdf_path <- get_all_pdf(selected_player_row()$playerlinkid, pitch_data(), selected_pitcher(), input$tag_choice)
       }
